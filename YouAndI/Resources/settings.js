@@ -6,6 +6,15 @@ var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 
+if (Ti.App.Properties.getString('is_logged_in') == "true")
+{
+	alert('LOGGED IN');
+}
+else
+{
+	alert('NOT logged in');
+}
+
 var namelbl = Ti.UI.createLabel({
 	color:'blue',
   text: 'Name',
@@ -163,14 +172,27 @@ function handle_lover_found(response)
 		'phone': phonetxt.value
 	};
 	alert('writing '+lover_details['id']+' '+lover_details['name']+' '+lover_details['phone']);
-	add_a_lover("lovers", lover_details);	
+	//add_a_lover("lovers", lover_details);
+	alert('logging in');
+	Ti.App.Properties.setString("is_logged_in", "request_sent");
+	Ti.App.Properties.setString("username", nametxt.value);
+	render_request_window();
+}
+
+function render_request_window()
+{
+	request_win = Ti.UI.createWindow({		
+		url: 'request_window.js'	
+	});
+	request_win.open();
 }
 
 function handle_no_lover_found(message, error)
 {
 	alert(message);
 	alert(nametxt.value+': ooh, it seems your lover has not registered yet :(');	
-	Ti.API.info(JSON.stringify(error));	
+	Ti.API.info(JSON.stringify(error));
+	Ti.App.Properties.setString("is_logged_in", "false");	
 }
 
 function fetch_lover_details(phone)

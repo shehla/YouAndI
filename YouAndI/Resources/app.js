@@ -1,9 +1,20 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
 Titanium.UI.setBackgroundColor('#000');
-
+//Ti.App.Properties.setString("is_logged_in", "");
 // create tab group
 var tabGroup = Titanium.UI.createTabGroup();
-
+if (Ti.App.Properties.getString('is_logged_in') == "request_sent")
+{
+	settings_win = 'request_window.js';
+}
+else if(Ti.App.Properties.getString('is_logged_in') == "true")
+{
+	alert('user registered but request not sent');
+	settings_win = 'settings.js';
+}
+else{
+	settings_win = 'settings.js';
+}
 
 //
 // create base UI tab and root window
@@ -25,7 +36,7 @@ var tab1 = Titanium.UI.createTab({
 var win2 = Titanium.UI.createWindow({  
     title:'Settings',
     backgroundColor:'#fff',
-    url: 'settings.js'
+    url: settings_win
 });
 var tab2 = Titanium.UI.createTab({  
     icon:'KS_nav_ui.png',
