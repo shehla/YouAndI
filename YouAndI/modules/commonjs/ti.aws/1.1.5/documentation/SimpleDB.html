@@ -1,0 +1,70 @@
+<h1>Amazon Web Services (AWS) Module</h1>
+
+<h2>Amazon SimpleDB</h2>
+
+<p>Amazon SimpleDB is a web service for running queries on structured data in real time. This service works in close conjunction with Amazon Simple Storage Service (Amazon S3) and Amazon Elastic Compute Cloud (Amazon EC2), collectively providing the ability to store, process and query data sets in the cloud. These services are designed to make web-scale computing easier and more cost-effective for developers.</p>
+
+<h2>Useful Links</h2>
+
+<ul>
+<li><a href="http://docs.amazonwebservices.com/gettingstarted/latest/awsgsg-intro/intro.html"> Getting Started with Amazon Web Services </a></li>
+<li><a href="http://aws.amazon.com/documentation/simpledb/"> Amazon SimpleDB </a></li>
+</ul>
+
+<h2>Method Calls</h2>
+
+<p>All methods are called using a standard calling convention:</p>
+
+<ul>
+<li>parameters[object]: Request parameters as specified in the corresponding Amazon Web Services API documentation.</li>
+<li>success[function]: A callback function that is executed if the request succeeds (optional). Parameters passed to the callback function are:
+<ul>
+<li>data[object]: Processed data.</li>
+<li>response[object]: Server response.</li>
+</ul></li>
+<li>error[function]: A callback function that is executed if the request fails (optional). Parameters passed to the callback function are:
+<ul>
+<li>message[string]: Error message.</li>
+<li>error[object]: Server response.</li>
+</ul></li>
+</ul>
+
+<h3>Example</h3>
+
+<pre><code>    AWS.SimpleDB.createDomain({
+        DomainName : 'DomainName'
+    },
+    function(data, response){
+        Ti.API.info(JSON.stringify(data));
+    },
+    function(message, error) {
+        Ti.API.error(message);
+        Ti.API.info(JSON.stringify(error));
+    });
+</code></pre>
+
+<h2>Methods</h2>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_BatchDeleteAttributes.html">batchDeleteAttributes</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_BatchPutAttributes.html">batchPutAttributes</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_CreateDomain.html">createDomain</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_DeleteAttributes.html">deleteAttributes</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_DeleteDomain.html">deleteDomain</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_DomainMetadata.html">domainMetadata</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_GetAttributes.html">getAttributes</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_ListDomains.html">listDomains</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_PutAttributes.html">putAttributes</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/SDB_API_Select.html">select</a></p>
+
+<h2>License</h2>
+
+<p>Copyright(c) 2011-2013 by Appcelerator, Inc. All Rights Reserved. Please see the LICENSE file included in the distribution for further details.</p>

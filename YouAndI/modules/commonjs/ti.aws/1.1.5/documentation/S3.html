@@ -1,0 +1,172 @@
+<h1>Amazon Web Services (AWS) Module</h1>
+
+<h2>Amazon Simple Storage Service (Amazon S3)</h2>
+
+<p>Amazon S3 is a web service that enables you to store data in the cloud.</p>
+
+<h2>Useful Links</h2>
+
+<ul>
+<li><a href="http://docs.amazonwebservices.com/gettingstarted/latest/awsgsg-intro/intro.html"> Getting Started with Amazon Web Services </a></li>
+<li><a href="http://aws.amazon.com/documentation/s3/"> Amazon S3 </a></li>
+</ul>
+
+<h2>Method Calls</h2>
+
+<p>All methods are called using a standard calling convention:</p>
+
+<ul>
+<li>parameters[object]: Request parameters as specified in the corresponding Amazon Web Services API documentation. (See NOTE below)</li>
+<li>success[function]: A callback function that is executed if the request succeeds (optional). Parameters passed to the callback function are:
+<ul>
+<li>data[object]: Processed data.</li>
+<li>response[object]: Server response.</li>
+</ul></li>
+<li>error[function]: A callback function that is executed if the request fails (optional). Parameters passed to the callback function are:
+<ul>
+<li>message[string]: Error message.</li>
+<li>error[object]: Server response.</li>
+</ul></li>
+</ul>
+
+<h3>NOTE</h3>
+
+<p>Methods that require sending an XML-formatted object in the request must set the <code>XMLTemplate</code> property.
+Methods that require sending a file in the request must set the <code>File</code> property.</p>
+
+<h3>Example</h3>
+
+<pre><code>    var f = Titanium.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, 'KS_nav_views.png');
+
+    AWS.S3.putObject({
+        'BucketName' : 'TestBucket',
+        'ObjectName' : 'KS_nav_views.png',
+        'File' : f
+    },
+    function(data, response){
+        Ti.API.info(JSON.stringify(data));
+    },
+    function(message, error) {
+        Ti.API.error(message);
+        Ti.API.info(JSON.stringify(error));
+    });
+</code></pre>
+
+<h3>Example</h3>
+
+<pre><code>    AWS.S3.deleteMultipleObjects({
+        'BucketName' : 'test100312_1',
+        'XMLTemplate' : '&lt;Delete&gt;&lt;Object&gt;&lt;Key&gt;KS_nav_views.png&lt;/Key&gt;&lt;/Object&gt;&lt;Object&gt;&lt;Key&gt;sample.png&lt;/Key&gt;&lt;/Object&gt;&lt;/Delete&gt;'
+    },
+    function(data, response){
+        Ti.API.info(JSON.stringify(data));
+    },
+    function(message, error) {
+        Ti.API.error(message);
+        Ti.API.info(JSON.stringify(error));
+    });
+</code></pre>
+
+<h2>Methods</h2>
+
+<h3>Operations on Buckets</h3>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketDELETE.html">deleteBucket</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketDELETElifecycle.html">deleteBucketLifecycle</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketDELETEpolicy.html">deleteBucketPolicy</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketDELETEtagging.html">deleteBucketTagging</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketDELETEwebsite.html">deleteBucketWebsite</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGET.html">getBucket</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETacl.html">getBucketAcl</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETlifecycle.html">getBucketLifecycle</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETpolicy.html">getBucketPolicy</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETlocation.html">getBucketLocation</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETlogging.html">getBucketLogging</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETnotification.html">getBucketNotification</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETtagging.html">getBucketTagging</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETVersion.html">getBucketObjectVersions</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTrequestPaymentGET.html">getBucketRequestPayment</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETversioningStatus.html">getBucketVersioning</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETwebsite.html">getBucketWebsite</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketHEAD.html">headBucket</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadListMPUpload.html">listMultipartUploads</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUT.html">putBucket</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTacl.html">putBucketAcl</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTlifecycle.html">putBucketLifecycle</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTpolicy.html">putBucketPolicy</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTlogging.html">putBucketLogging</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTnotification.html">putBucketNotification</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTtagging.html">putBucketTagging</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTrequestPaymentPUT.html">putBucketRequestPayment</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTVersioningStatus.html">putBucketVersioning</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketPUTwebsite.html">putBucketWebsite</a></p>
+
+<h3>Operations on Objects</h3>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectDELETE.html">deleteObject</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/multiobjectdeleteapi.html">deleteMultipleObjects</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectGET.html">getObject</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectGETacl.html">getObjectAcl</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectGETtorrent.html">getObjectTorrent</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectHEAD.html">headObject</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUT.html">putObject</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUTacl.html">putObjectAcl</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectCOPY.html">putObjectCopy</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadInitiate.html">initiateMultipartUpload</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPart.html">uploadPart</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadUploadPartCopy.html">uploadPartCopy</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadComplete.html">completeMultipartUpload</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadAbort.html">abortMultipartUpload</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/mpUploadListParts.html">listParts</a></p>
+
+<h3>Operations on the Service</h3>
+
+<p><a href="http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTServiceGET.html">getService</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/sdkfornet/latest/apidocs/html/M_Amazon_S3_AmazonS3_GetPreSignedURL.htm">getPresignedUrl</a></p>
+
+<h2>License</h2>
+
+<p>Copyright(c) 2011-2013 by Appcelerator, Inc. All Rights Reserved. Please see the LICENSE file included in the distribution for further details.</p>

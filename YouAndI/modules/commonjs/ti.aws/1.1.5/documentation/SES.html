@@ -1,0 +1,79 @@
+<h1>Amazon Web Services (AWS) Module</h1>
+
+<h2>Amazon Simple Email Service (Amazon SES)</h2>
+
+<p>Amazon SES provides an easy, flexible, and low-cost way to deliver email from the cloud, while reducing the likelihood of legitimate email being classified by ISPs as spam. Amazon SES integrates seamlessly with other AWS products, can send a broad range of transactional, marketing, and subscription messages, and scales to handle large volumes of email. Amazon SES removes the barrier to entry for those not needing the costly full-service campaign management features of traditional email service providers.</p>
+
+<h2>Useful Links</h2>
+
+<ul>
+<li><a href="http://docs.amazonwebservices.com/gettingstarted/latest/awsgsg-intro/intro.html"> Getting Started with Amazon Web Services </a></li>
+<li><a href="http://aws.amazon.com/documentation/ses/"> Amazon SES </a></li>
+</ul>
+
+<h2>Method Calls</h2>
+
+<p>All methods are called using a standard calling convention:</p>
+
+<ul>
+<li>parameters[object]: Request parameters as specified in the corresponding Amazon Web Services API documentation.</li>
+<li>success[function]: A callback function that is executed if the request succeeds (optional). Parameters passed to the callback function are:
+<ul>
+<li>data[object]: Processed data.</li>
+<li>response[object]: Server response.</li>
+</ul></li>
+<li>error[function]: A callback function that is executed if the request fails (optional). Parameters passed to the callback function are:
+<ul>
+<li>message[string]: Error message.</li>
+<li>error[object]: Server response.</li>
+</ul></li>
+</ul>
+
+<h3>Example</h3>
+
+<pre><code>    AWS.SES.sendEmail({
+        'Source' : 'test@test.com',
+        'Destination' : {
+            'ToAddresses' : ['test@test.com'],
+            'CcAddresses' : ['test@test.com'],
+            'BccAddresses' : ['test@test.com']
+        },
+        'Message' : {
+            'Subject' : {
+                'Data' : 'Hello Message'
+            },
+            'Body' : {
+                'Text' : {
+                    'Data' : 'Hi... This is a test message.'
+                }
+            }
+        }
+    },
+    function(data, response){
+        Ti.API.info(JSON.stringify(data));
+    },
+    function(message, error) {
+        Ti.API.error(message);
+        Ti.API.info(JSON.stringify(error));
+    });
+</code></pre>
+
+<h2>Methods</h2>
+
+<p><a href="http://docs.amazonwebservices.com/ses/latest/APIReference/API_DeleteVerifiedEmailAddress.html">deleteVerifiedEmailAddress</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/ses/latest/APIReference/API_GetSendQuota.html">getSendQuota</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/ses/latest/APIReference/API_GetSendStatistics.html">getSendStatistics</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/ses/latest/APIReference/API_ListVerifiedEmailAddresses.html">listVerifiedEmailAddresses</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/ses/latest/APIReference/API_SendEmail.html">sendEmail</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/ses/latest/APIReference/API_SendRawEmail.html">sendRawEmail</a></p>
+
+<p><a href="http://docs.amazonwebservices.com/ses/latest/APIReference/API_VerifyEmailAddress.html">verifyEmailAddress</a></p>
+
+<h2>License</h2>
+
+<p>Copyright(c) 2011-2013 by Appcelerator, Inc. All Rights Reserved. Please see the LICENSE file included in the distribution for further details.</p>

@@ -1,0 +1,87 @@
+<h1>Amazon Web Services (AWS) Module</h1>
+
+<h2>Description</h2>
+
+<p>A framework for exposing the Amazon Web Service APIs to Appcelerator Titanium Mobile.</p>
+
+<h2>Amazon Web Services Documentation</h2>
+
+<p>This framework is designed for QueryAPIs provided by AWS. Each service is represented
+as a NameSpace, within which each operation is exposed.</p>
+
+<p>This framework requires you to refer to the AWS API reference for handling requests sent to and
+responses received from the service.</p>
+
+<p>Refer to the <a href="http://aws.amazon.com/documentation/">Amazon Web Services Documentation</a> for instructions on
+getting started, setting up your account, and obtaining the credentials needed to access the APIs.</p>
+
+<h2>Getting Started</h2>
+
+<p>View the <a href="http://docs.appcelerator.com/titanium/latest/#!/guide/Using_Titanium_Modules">Using Titanium Modules</a> document for instructions on getting
+started with using this module in your application.</p>
+
+<h2>Accessing the Module</h2>
+
+<p>Use <code>require</code> to access this module from JavaScript:</p>
+
+<pre><code>    var AWS = require("ti.aws");
+</code></pre>
+
+<p>The AWS variable is a reference to the Module object.</p>
+
+<h3>Authentication</h3>
+
+<p>Before using the module, you need to create an account with Amazon and obtain your AWS Access Key ID and Secret Access Key. The Access
+Key ID and Secret Access Key must be used to authorize access to your account.</p>
+
+<pre><code>// Specify the accesskey &amp; secretKey to be used for authorizing the QueryAPI calls made by the Service.
+AWS.authorize(accessKey, secretKey);
+</code></pre>
+
+<ul>
+<li>accessKey[string]: The access key for your application</li>
+<li>secureKey[string]: The secure key for your application</li>
+</ul>
+
+<h4>Useful Links</h4>
+
+<ul>
+<li><p><a href="http://docs.amazonwebservices.com/IAM/latest/UserGuide/PoliciesOverview.html?r=3093">Overview of Policies</a></p></li>
+<li><p><a href="http://docs.amazonwebservices.com/IAM/latest/UserGuide/ExampleIAMPolicies.html">Example Policies for IAM Entities</a></p></li>
+<li><p><a href="http://docs.amazonwebservices.com/IAM/latest/UserGuide/AccessPolicyLanguage_HowToWritePolicies.html">How to Write a Policy</a></p></li>
+<li><p><a href="http://docs.amazonwebservices.com/IAM/latest/UserGuide/Using_SpecificProducts.html">Integrating with Other AWS Products</a></p></li>
+<li><p><a href="http://awspolicygen.s3.amazonaws.com/policygen.html">AWS Policy Generator</a></p></li>
+</ul>
+
+<h2>Supported Services</h2>
+
+<p>Please click on the links below for the Titanium Module documentation &amp; code-snippets for each of the supported AWS services.</p>
+
+<ul>
+<li><p><a href="SimpleDB.html">Amazon SimpleDB</a></p></li>
+<li><p><a href="S3.html">Simple Storage Service (Amazon S3)</a></p></li>
+<li><p><a href="SES.html">Amazon Simple Email Service (Amazon SES)</a></p></li>
+<li><p><a href="SQS.html">Amazon Simple Queue Service (Amazon SQS)</a></p></li>
+<li><p><a href="SNS.html">Amazon Simple Notification Service (Amazon SNS)</a></p></li>
+<li><p><a href="DDB.html">Amazon DynamoDB</a></p></li>
+</ul>
+
+<h2>Usage</h2>
+
+<p>See the example applications in the <code>example</code> folder of the module.</p>
+
+<h2>Author</h2>
+
+<p>Global Logic &amp; Jeff English</p>
+
+<h2>Module History</h2>
+
+<p>View the <a href="changelog.html">change log</a> for this module.</p>
+
+<h2>Feedback and Support</h2>
+
+<p>Please direct all questions, feedback, and concerns to <a href="mailto:info@appcelerator.com?subject=ti.aws%20Module">info@appcelerator.com</a>.</p>
+
+<h2>License</h2>
+
+<p>Copyright(c) 2011-2013 by Appcelerator, Inc. All Rights Reserved. Please see the LICENSE file included in the distribution for further details.</p>
