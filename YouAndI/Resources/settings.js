@@ -1,6 +1,11 @@
 //////////////////////////////////////////////////////////////////////
 // Adding text field
 var AWS = require("ti.aws");
+var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
+var data = AWSfile.read().text;
+var AWS_json = JSON.parse(data);
+AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
+
 var namelbl = Ti.UI.createLabel({
 	color:'blue',
   text: 'Name',
@@ -161,8 +166,9 @@ function handle_lover_found(response)
 	add_a_lover("lovers", lover_details);	
 }
 
-function handle_no_lover_found(error)
+function handle_no_lover_found(message, error)
 {
+	alert(message);
 	alert(nametxt.value+': ooh, it seems your lover has not registered yet :(');	
 	Ti.API.info(JSON.stringify(error));	
 }
@@ -177,7 +183,7 @@ function fetch_lover_details(phone)
 		function(data, response) {
 		handle_lover_found(response);
   	},  function(message,error) {				
-		handle_no_lover_found(error);
+		handle_no_lover_found(message, error);
 	});			
 }	
 
@@ -193,8 +199,7 @@ var guid = (function() {
   };
 })();
 
-button.addEventListener('click', function(e){	
-	AWS.authorize('AKIAIX5POYG6QZNZHRVA', 'UTyP0FYscLPhdAukw+kBw+Y8hNMLNw4GLjmEQ5y3');
+button.addEventListener('click', function(e){		
 	//create_lovers_table(AWS, "lovers");
 	
 	if (check_fields())
