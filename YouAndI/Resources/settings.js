@@ -81,20 +81,30 @@ function add_user(table_name, user_details, msg)
 			'RequestJSON' : {
 				"TableName" : table_name,
 				"Item" : {
-					"status" : { "N" : user_details['status'].toString()}, //Required					
+					"status" : { "N" : user_details['status']}, //Required					
 					'name' : { 'S' : user_details['name']},
-					'phone': { 'S' : user_details['phone']}
+					'phone': { 'S' : user_details['phone']}						
 				}
 			} //Required
 		};
+		
+	if (user_details['lover_phone'] && user_details['lover_phone'] != '' && typeof(user_details['lover_phone'] != 'undefined'))
+	{
+		params["RequestJSON"]["Item"]["lover_phone"] = {};
+		params["RequestJSON"]["Item"]["lover_phone"]["S"] = user_details['lover_phone'];
+	}
+			
+	Ti.API.info('add_user: '+JSON.stringify(params));
 	
 	
 		
 		AWS.DDB.putItem(params,
 			
 		function(data, response) {
-		if(msg != '')
-			alert(msg);
+		if(msg != '' && typeof(msg) != 'undefined')
+		{
+			alert('Horray! '+msg);
+		}
 		Ti.API.info(JSON.stringify(response));
 		login_user();
 
@@ -203,6 +213,10 @@ function get_user_details()
 		'name': nametxt.value,
 		'phone': phonetxt.value
 	};
+	if(lover_phone_txt.value != '' && typeof(user_details['lover_phone'] != 'undefined'))
+	{
+		user_details['lover_phone'] = lover_phone_txt.value; 
+	}
 	return user_details;
 }
 
@@ -218,23 +232,23 @@ function login_user()
 function handle_lover_found(response)
 {	
 	// The lover exists in DDB
+	user_details = get_user_details();
 	if (response["data"]["Responses"]["lovers"]["Items"].length > 0)
 	{
 		lover = response["data"]["Responses"]["lovers"]["Items"][0];		
-		Ti.API.info(JSON.stringify(response));
-		user_details = get_user_details();
+		Ti.API.info(JSON.stringify(response));		
 		// BINGO! The lover already sent a request for THIS guy.
 		if (lover['lover_phone'] == phonetxt.value)
 		{
 			// Add the new entry for THIS user			
-			user_details['status'] = 1;
+			user_details['status'] = '1';
 			// Update lover record (status and lover_phone)
 			update_lover_record(lover, user_details);
 		}
 		// The lover has not sent a request for this guy
 		else{
 			// Send a request to the lover from THIS guy			
-			user_details['status'] = 0;
+			user_details['status'] = '0';
 			// TODO: send an email to lover			
 			msg = 'Good news! You\'re lover has registered and we are sending a request ;)';			
 		}				
@@ -245,9 +259,8 @@ function handle_lover_found(response)
 	{
 		// TODO: Add a check if the lover is already in love with someone else ;) (check for status=1)		
 		alert(nametxt.value+': ooh, it seems your lover has not registered yet :(');
-		Ti.App.Properties.setString("is_logged_in", "true");		
-		user_details = get_user_details();		
-		user_details['status'] = 0;
+		Ti.App.Properties.setString("is_logged_in", "true");					
+		user_details['status'] = '0';		
 		add_user("lovers", user_details);
 
 	}
@@ -299,7 +312,7 @@ button.addEventListener('click', function(e){
 		{					
 			msg = 'Cool, you can come and add a lover later :)';
 			user_details = get_user_details();
-			user_details['status'] = 0;
+			user_details['status'] = '0';
 			add_user("lovers", user_details, msg);
 		}
 	}		
