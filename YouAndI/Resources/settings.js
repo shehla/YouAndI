@@ -84,16 +84,15 @@ var button = Ti.UI.createButton({
 	height: 50
 });
 
-function add_a_lover(table_name, lover_details)
+function add_user(table_name, user_details, msg)
 {
 	var params = {
 			'RequestJSON' : {
 				"TableName" : table_name,
 				"Item" : {
-					"dummy" : { "N" : '1'}, //Required
-					"id" : { "S" : lover_details['id']}, //Required
-					'name' : { 'S' : lover_details['name']},
-					'phone': { 'S' : lover_details['phone']}
+					"status" : { "N" : '1'}, //Required					
+					'name' : { 'S' : user_details['name']},
+					'phone': { 'S' : user_details['phone']}
 				}
 			} //Required
 		};
@@ -103,7 +102,8 @@ function add_a_lover(table_name, lover_details)
 		AWS.DDB.putItem(params,
 			
 		function(data, response) {
-		alert('Success: '+ JSON.stringify(response));
+		if(msg != '')
+			alert(msg);
 		Ti.API.info(JSON.stringify(response));
 
   	},  function(message,error) {
@@ -144,7 +144,7 @@ function create_lovers_table(table_name)
     });	
 }
 
-function check_fields()
+function check_basic_fields()
 {
 	if(nametxt.value == "")
 	{
@@ -157,26 +157,106 @@ function check_fields()
 		return false;
 	}
 	return true;
-	
 }
 
-function handle_lover_found(response)
+function check_lover_entered()
 {
-	response["data"]["Responses"]["lovers"]["Items"][0]["name"]["S"];
-	alert(nametxt.value+': you love '+ JSON.stringify(response["data"]["Responses"]["lovers"]["Items"][0]["name"]["S"])+ '?');
-	Ti.API.info(JSON.stringify(response));
-	lover_details = {
-		'dummy': 1,
-		'id': guid(),
+	return !(lover_phone_txt.value == '');
+}
+
+// When:
+//		1. Lover existed and sent a request for THIS user earlier
+function update_lover_record(lover, user)
+{
+	var params = {
+				'RequestJSON' : {
+					"TableName" : 'lovers',
+					"Key" : {
+						"HashKeyElement" : {
+							"N" : lover['status']
+						},
+						"RangeKeyElement" : {
+							"S" : lover['phone']
+						}
+					},
+					"AttributeUpdates" : {
+						"lover_phone" : {
+							"Value" : {
+								"S" : user['phone']
+							},
+							"Action" : "PUT"
+						}
+					},
+					"ReturnValues" : "ALL_NEW"
+				}
+				//Required
+			};
+	
+		AWS.DDB.updateItem(params,
+			
+			function(data, response) {
+				alert('Success: '+ JSON.stringify(response));
+				Ti.API.info(JSON.stringify(response));
+	
+	  	},  function(message,error) {
+				alert('Error: '+ JSON.stringify(error));
+				Ti.API.info(JSON.stringify(error));
+	
+		});	
+}
+
+function get_user_details()
+{
+	user_details = {			
 		'name': nametxt.value,
 		'phone': phonetxt.value
 	};
-	alert('writing '+lover_details['id']+' '+lover_details['name']+' '+lover_details['phone']);
-	//add_a_lover("lovers", lover_details);
-	alert('logging in');
-	Ti.App.Properties.setString("is_logged_in", "request_sent");
-	Ti.App.Properties.setString("username", nametxt.value);
-	render_request_window();
+	return user_details;
+}
+
+// When:
+//     	1. User pressed the register btn
+// 		2. All name, phone and lover fields are entered
+function handle_lover_found(response)
+{
+	alert('coming in lover found')	
+	// The lover exists in DDB
+	if (response["data"]["Responses"]["lovers"]["Items"].length > 0)
+	{
+		lover = response["data"]["Responses"]["lovers"]["Items"][0];
+		user_details = get_user_details();
+		// BINGO! The lover already sent a request for THIS guy.
+		if (lover['lover_phone'] == phonetxt.value)
+		{
+			// Add the new entry for THIS user			
+			user_details['status'] = 1;
+			add_user("lovers", user_details, msg);
+			// Update lover record (status and lover_phone)
+			update_lover_record(lover, user_details);
+		}
+		else{
+			// Send a request to the lover from THIS guy			
+			user_details['status'] = 0;
+			// TODO: send an email to lover
+			render_request_window();
+		}
+		alert(nametxt.value+': you love '+ JSON.stringify(response["data"]["Responses"]["lovers"]["Items"][0]["name"]["S"])+ '?');
+		Ti.API.info(JSON.stringify(response));
+		alert('logging in');
+		Ti.App.Properties.setString("is_logged_in", "request_sent");
+		Ti.App.Properties.setString("username", nametxt.value);
+		
+	}
+	// Lover doesn't exist in DDB
+	else
+	{
+		// TODO: Add a check if the lover is already in love with someone else ;) (check for status=1)		
+		alert(nametxt.value+': ooh, it seems your lover has not registered yet :(');
+		Ti.App.Properties.setString("is_logged_in", "true");
+		user_details = get_user_details();		
+		add_lover("lovers", user_details);
+
+	}
 }
 
 function render_request_window()
@@ -188,16 +268,15 @@ function render_request_window()
 }
 
 function handle_no_lover_found(message, error)
-{
-	alert(message);
-	alert(nametxt.value+': ooh, it seems your lover has not registered yet :(');	
-	Ti.API.info(JSON.stringify(error));
-	Ti.App.Properties.setString("is_logged_in", "false");	
+{	
+	alert('ERROR: '+message);
+	Ti.API.info(JSON.stringify(error));	
 }
 
 function fetch_lover_details(phone)
 {	
-	var params = '{"RequestJSON" : {"RequestItems":{"lovers": {"Keys": [{"HashKeyElement": {"N":"1"}, "RangeKeyElement":{"S":"'+phone+'"}}],"AttributesToGet":["name", "id"]}}}}';
+	var params = '{"RequestJSON" : {"RequestItems":{"lovers": {"Keys": [{"HashKeyElement": {"N":"0"}, "RangeKeyElement":{"S":"'+phone+'"}}],"AttributesToGet":["name", "phone"]}}}}';
+	Ti.API.info(params);
 	
 			
 	AWS.DDB.batchGetItem(JSON.parse(params),
@@ -209,24 +288,25 @@ function fetch_lover_details(phone)
 	});			
 }	
 
-var guid = (function() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-               .toString(16)
-               .substring(1);
-  }
-  return function() {
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-           s4() + '-' + s4() + s4() + s4();
-  };
-})();
-
 button.addEventListener('click', function(e){		
 	//create_lovers_table(AWS, "lovers");
 	
-	if (check_fields())
-	{		
-		fetch_lover_details(lover_phone_txt.value);		
+	// Did user enter name and phone?
+	if (check_basic_fields())
+	{	
+		// Did user enter lover details?
+		if (check_lover_entered())
+		{	
+			// Fetch lover details to see if lover already requested for THIS user
+			fetch_lover_details(lover_phone_txt.value);
+		}		
+		// If user didn't enter a lover yet, just add him
+		else
+		{					
+			msg = 'Cool, you can come a add a lover later :)';
+			user_details = get_user_details();
+			add_user("lovers", user_details, msg);
+		}
 	}		
 });
 

@@ -1,6 +1,6 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
 Titanium.UI.setBackgroundColor('#000');
-//Ti.App.Properties.setString("is_logged_in", "");
+Ti.App.Properties.setString("is_logged_in", "");
 // create tab group
 var tabGroup = Titanium.UI.createTabGroup();
 if (Ti.App.Properties.getString('is_logged_in') == "request_sent")
