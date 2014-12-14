@@ -6,15 +6,6 @@ var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 
-if (Ti.App.Properties.getString('is_logged_in') == "true")
-{
-	alert('LOGGED IN');
-}
-else
-{
-	alert('NOT logged in');
-}
-
 var namelbl = Ti.UI.createLabel({
 	color:'blue',
   text: 'Name',
@@ -90,7 +81,7 @@ function add_user(table_name, user_details, msg)
 			'RequestJSON' : {
 				"TableName" : table_name,
 				"Item" : {
-					"status" : { "N" : '1'}, //Required					
+					"status" : { "N" : user_details['status'].toString()}, //Required					
 					'name' : { 'S' : user_details['name']},
 					'phone': { 'S' : user_details['phone']}
 				}
@@ -105,6 +96,7 @@ function add_user(table_name, user_details, msg)
 		if(msg != '')
 			alert(msg);
 		Ti.API.info(JSON.stringify(response));
+		login_user();
 
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));
@@ -214,47 +206,49 @@ function get_user_details()
 	return user_details;
 }
 
+function login_user()
+{
+	Ti.App.Properties.setString("is_logged_in", "request_sent");
+	Ti.App.Properties.setString("username", nametxt.value);	
+}
+
 // When:
 //     	1. User pressed the register btn
 // 		2. All name, phone and lover fields are entered
 function handle_lover_found(response)
-{
-	alert('coming in lover found')	
+{	
 	// The lover exists in DDB
 	if (response["data"]["Responses"]["lovers"]["Items"].length > 0)
 	{
-		lover = response["data"]["Responses"]["lovers"]["Items"][0];
+		lover = response["data"]["Responses"]["lovers"]["Items"][0];		
+		Ti.API.info(JSON.stringify(response));
 		user_details = get_user_details();
 		// BINGO! The lover already sent a request for THIS guy.
 		if (lover['lover_phone'] == phonetxt.value)
 		{
 			// Add the new entry for THIS user			
 			user_details['status'] = 1;
-			add_user("lovers", user_details, msg);
 			// Update lover record (status and lover_phone)
 			update_lover_record(lover, user_details);
 		}
+		// The lover has not sent a request for this guy
 		else{
 			// Send a request to the lover from THIS guy			
 			user_details['status'] = 0;
-			// TODO: send an email to lover
-			render_request_window();
-		}
-		alert(nametxt.value+': you love '+ JSON.stringify(response["data"]["Responses"]["lovers"]["Items"][0]["name"]["S"])+ '?');
-		Ti.API.info(JSON.stringify(response));
-		alert('logging in');
-		Ti.App.Properties.setString("is_logged_in", "request_sent");
-		Ti.App.Properties.setString("username", nametxt.value);
-		
+			// TODO: send an email to lover			
+			msg = 'Good news! You\'re lover has registered and we are sending a request ;)';			
+		}				
+		add_user("lovers", user_details, msg);
 	}
 	// Lover doesn't exist in DDB
 	else
 	{
 		// TODO: Add a check if the lover is already in love with someone else ;) (check for status=1)		
 		alert(nametxt.value+': ooh, it seems your lover has not registered yet :(');
-		Ti.App.Properties.setString("is_logged_in", "true");
+		Ti.App.Properties.setString("is_logged_in", "true");		
 		user_details = get_user_details();		
-		add_lover("lovers", user_details);
+		user_details['status'] = 0;
+		add_user("lovers", user_details);
 
 	}
 }
@@ -303,8 +297,9 @@ button.addEventListener('click', function(e){
 		// If user didn't enter a lover yet, just add him
 		else
 		{					
-			msg = 'Cool, you can come a add a lover later :)';
+			msg = 'Cool, you can come and add a lover later :)';
 			user_details = get_user_details();
+			user_details['status'] = 0;
 			add_user("lovers", user_details, msg);
 		}
 	}		

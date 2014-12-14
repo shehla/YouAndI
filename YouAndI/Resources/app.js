@@ -8,8 +8,7 @@ if (Ti.App.Properties.getString('is_logged_in') == "request_sent")
 	settings_win = 'request_window.js';
 }
 else if(Ti.App.Properties.getString('is_logged_in') == "true")
-{
-	alert('user registered but request not sent');
+{	
 	settings_win = 'settings.js';
 }
 else{
