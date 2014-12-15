@@ -9,10 +9,10 @@ if (Ti.App.Properties.getString('is_logged_in') == "request_sent")
 }
 else if(Ti.App.Properties.getString('is_logged_in') == "true")
 {	
-	settings_win = 'settings.js';
+	settings_win = 'basic_registration.js';
 }
 else{
-	settings_win = 'settings.js';
+	settings_win = 'basic_registration.js';
 }
 
 //
