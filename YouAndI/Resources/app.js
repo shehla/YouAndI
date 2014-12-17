@@ -1,11 +1,13 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
+clear_fields();
 Titanium.UI.setBackgroundColor('#000');
-Ti.App.Properties.setString("is_logged_in", "");
 // create tab group
 var tabGroup = Titanium.UI.createTabGroup();
-if (Ti.App.Properties.getString('is_logged_in') == "request_sent")
+
+if (Ti.App.Properties.getString('is_logged_in') =='request_sent')
 {
-	settings_win = 'request_window.js';
+	
+	settings_win = 'add_lover.js';
 }
 else if(Ti.App.Properties.getString('is_logged_in') == "true")
 {	
@@ -13,6 +15,13 @@ else if(Ti.App.Properties.getString('is_logged_in') == "true")
 }
 else{
 	settings_win = 'basic_registration.js';
+}
+
+function clear_fields()
+{
+	Ti.App.Properties.removeProperty('name');
+	Ti.App.Properties.removeProperty('phone');
+	Ti.App.Properties.removeProperty('is_logged_in');
 }
 
 //
