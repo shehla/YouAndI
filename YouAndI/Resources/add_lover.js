@@ -3,13 +3,13 @@ var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
-
+lover_global = 'None';
 
 ///////////////////
 // Welcome message
 var welcome_lbl = Ti.UI.createLabel({
 	color:'blue',
-  text: 'Welcome '+Ti.App.Properties.getString('name')+' :)',
+  text: 'Welcome '+Ti.App.Properties.getString('name')+' '+Ti.App.Properties.getString('phone')+':)',
   textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
   top: 20, left: 60,
   width: 250, height: 40
@@ -41,19 +41,16 @@ function check_lover_entered()
 	return !(lover_phone_txt.value == '');
 }
 
-function user_updated_while_adding_lover()
+function update_lover()
 {
-	alert('Rad! lover updated');
-}
-
-function lover_updated_while_adding_lover()
-{
-	
+	// Lover hasn't added user
+	update_person_record(lover_global, null);
+	Ti.App.Properties.setString("lover_phone", lover_phone_txt.value);
 }
 
 // When:
 //		1. Lover existed and sent a request for THIS user earlier
-function update_lover_record(lover, callback)
+function update_person_record(lover, callback)
 {
 	var params = {
 				'RequestJSON' : {
@@ -86,7 +83,8 @@ function update_lover_record(lover, callback)
 			
 			function(data, response) {
 				Ti.API.info('Update ->'+JSON.stringify(response));
-				callback();
+				if (callback !=null)
+					callback();
 	
 	  	},  function(message,error) {
 				Ti.API.info(JSON.stringify(error));
@@ -172,25 +170,28 @@ function handle_lover_found(response)
 	{
 		lover_ddb = response["data"]["Responses"]["lovers"]["Items"][0];
 		Ti.API.info(' Lover -> '+ JSON.stringify(lover_ddb));
-		lover = extract_lover_details(response["data"]["Responses"]["lovers"]["Items"][0]);							
+		lover_global = extract_lover_details(response["data"]["Responses"]["lovers"]["Items"][0]);							
 		// BINGO! The lover already sent a request for THIS guy.
-		if (lover['lover_phone'] == user_details['phone'])
-		{
-			// Add the new entry for THIS user			
-			user_details['status'] = '2';
+		user_details['lover_phone'] = lover_phone_txt.value;
+		if (lover_global['lover_phone'] == user_details['phone'])
+		{	
+			user_details['status'] = 2;
+			alert('Bingo! We found your lover '+lover_global['name']+'.');
 			// Update lover record (status and lover_phone)
-			lover['status'] = 2;
-			update_lover_record(user_details, user_updated_while_adding_lover);
-			update_lover_record(lover, user_updated_while_adding_lover);
+			lover_global['status'] = 2;
+			lover_global['lover_phone'] = user_details['phone'];
+			update_person_record(user_details, update_lover);			
 		}
 		// The lover has not sent a request for this guy
 		else{
-			// Send a request to the lover from THIS guy			
-			user_details['status'] = '1';
+			// Send a request to the lover from THIS guy
+			alert('We found your lover '+lover_global['name']+' but he/she isn\'t in love yet :)');		
+			user_details['status'] = 1;						
+			lover_global['status'] = 1;
 			// TODO: send an email to lover						
-			update_lover_record(user_details, user_updated_while_adding_lover);			
+			update_person_record(user_details, update_lover);			
 		}				
-		add_user("lovers", user_details, msg);
+		
 	}
 	// Lover doesn't exist in DDB
 	else
@@ -201,6 +202,25 @@ function handle_lover_found(response)
 		Ti.App.Properties.setString("is_logged_in", "true");
 		user_details['lover_phone'] = lover_phone_txt.value;
 		user_details['status'] = '1';		
-		update_lover_record(user_details, lover_updated);
+		update_person_record(user_details, null);
 	}
+	final_registration_window();
 }
+
+////////////////////////
+// Final screen
+function final_registration_window()
+{
+	var emptyView = Titanium.UI.createView({});	
+	add_lover_win = Ti.UI.createWindow({
+		backgroundColor:'#fff', 		
+		url: 'login_greetings.js',
+		leftNavButton: emptyView,
+		txtmsg: 'Registration done ;)'
+	});		
+	//Ti.UI.currentWindow.hide();
+	//add_lover_win.show();
+	Ti.UI.currentTab.add(add_lover_win);
+	Ti.UI.currentTab.open(add_lover_win);	
+	//Ti.UI.currentTab.window = add_lover_win;
+} 
