@@ -1,10 +1,12 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
-
-clear_fields();
+Ti.App.Properties.setString('back_color','#AFEEEE');
+Ti.App.Properties.setString('text_color', '#336699');
+//clear_fields();
+/*
 Ti.App.Properties.setString('status', 2);
 Ti.App.Properties.setString('phone', '18a');
 Ti.App.Properties.setString('lover_phone', '18b');
-
+*/
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
@@ -27,7 +29,7 @@ function extract_lover_details(lover_ddb)
 	}	
 	return lover;
 }
-//current_stage();
+Ti.API.info('Status ---->'+Ti.App.Properties.getString('status'));
 if (Ti.App.Properties.getString('status') == 1)
 {
 	settings_win = 'add_lover.js';
@@ -93,9 +95,7 @@ function fetch_status()
 				//Bingo: They're in love :D
 				final_registration_window('Bingo .. you:'+Ti.App.Properties.getString("phone")+ ' and ->'+Ti.App.Properties.getString("lover_phone")+ ' are in love :D');											
 			}			
-		}
-		render_app();							
-
+		}								
 
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));
@@ -108,12 +108,12 @@ function final_registration_window(custom_msg)
 {
 	var emptyView = Titanium.UI.createView({});	
 	add_lover_win = Ti.UI.createWindow({
-		backgroundColor:'#fff', 		
+		backgroundColor:Ti.App.Properties.getString('back_color'), 		
 		url: 'login_greetings.js',
 		leftNavButton: emptyView
 	});			
 	custom_label = Ti.UI.createLabel({
-		color: 'black',
+		color: Ti.App.Properties.getString('text_color'),
 		text: custom_msg,
 		font:{fontSize:20,fontFamily:'Helvetica Neue'},
 		textAlign:'center',
@@ -126,28 +126,11 @@ function final_registration_window(custom_msg)
 	render_app();		
 } 
 
-function current_stage()
-{
-	if (Ti.App.Properties.getString('is_logged_in') =='request_sent')
-	{
-		
-		settings_win = 'add_lover.js';
-	}
-	else if(Ti.App.Properties.getString('is_logged_in') == "true")
-	{	
-		settings_win = 'basic_registration.js';
-	}
-	else{
-		settings_win = 'basic_registration.js';
-	}
-}
-
 function clear_fields()
 {
 	Ti.App.Properties.removeProperty('name');
 	Ti.App.Properties.removeProperty('status');
 	Ti.App.Properties.removeProperty('phone');
-	Ti.App.Properties.removeProperty('is_logged_in');
 	Ti.App.Properties.removeProperty('lover_phone');
 }
 
@@ -156,7 +139,7 @@ function render_tabs()
 {
 	var win2 = Titanium.UI.createWindow({  
 	    title:'Settings',
-	    backgroundColor:'#fff',
+	    backgroundColor:Ti.App.Properties.getString('back_color'),
 	    url: settings_win
 	});
 	current_window = win2;
@@ -169,7 +152,7 @@ function render_app()
 	//
 	var win1 = Titanium.UI.createWindow({  
 	    title:'Loves',
-	    backgroundColor:'#fff',
+	    backgroundColor:Ti.App.Properties.getString('back_color'),
 	    url:'love.js'
 	});
 	var tab1 = Titanium.UI.createTab({  

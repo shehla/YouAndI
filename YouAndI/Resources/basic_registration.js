@@ -7,7 +7,7 @@ var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 
 var namelbl = Ti.UI.createLabel({
-	color:'blue',
+	color:Ti.App.Properties.getString('text_color'),
   text: 'Name',
   textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
   top: 10, left: 10,
@@ -18,7 +18,7 @@ Ti.UI.currentWindow.add(namelbl);
 var nametxt = Ti.UI.createTextField({
 	borderColor:'black',
 	borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
-	color: '#336699',
+	color: Ti.App.Properties.getString('text_color'),
   	top: 10, left: 100,
   	width: 150, height: 40
 });
@@ -27,7 +27,7 @@ Ti.UI.currentWindow.add(nametxt);
 /////////////////////
 // Your number
 var phonelbl = Ti.UI.createLabel({
-	color:'blue',
+	color:Ti.App.Properties.getString('text_color'),
   text: 'Phone #',
   textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
   top: 60, left: 10,
@@ -38,7 +38,7 @@ Ti.UI.currentWindow.add(phonelbl);
 var phonetxt = Ti.UI.createTextField({
 	borderColor:'black',
 	borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
-	color: '#336699',
+	color: Ti.App.Properties.getString('text_color'),
   	top: 60, left: 100,
   	width: 150, height: 40
 });
@@ -71,8 +71,7 @@ function check_basic_fields()
 }
 
 function login_user()
-{
-	Ti.App.Properties.setString("is_logged_in", "request_sent");
+{	
 	Ti.App.Properties.setString("name", nametxt.value);
 	Ti.App.Properties.setString("phone", phonetxt.value);	
 }
@@ -133,7 +132,7 @@ function add_lover_window()
 {
 	var emptyView = Titanium.UI.createView({});	
 	add_lover_win = Ti.UI.createWindow({
-		backgroundColor:'#fff', 		
+		backgroundColor:Ti.App.Properties.getString('back_color'), 		
 		url: 'add_lover.js',
 		leftNavButton: emptyView
 	});		

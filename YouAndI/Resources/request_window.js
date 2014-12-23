@@ -5,6 +5,6 @@ request_sent_label = Ti.UI.createLabel({
 	textAlign:'center',
 	width:'auto'
 });
-Ti.UI.currentWindow.backgroundColor='#00CCFF';
+Ti.UI.currentWindow.backgroundColor=Ti.App.Properties.getString('back_color');
 Ti.UI.currentWindow.add(request_sent_label);
 	

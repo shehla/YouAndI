@@ -8,7 +8,7 @@ lover_global = 'None';
 ///////////////////
 // Welcome message
 var welcome_lbl = Ti.UI.createLabel({
-	color:'blue',
+	color:Ti.App.Properties.getString('text_color'),
   text: 'Welcome '+Ti.App.Properties.getString('name')+' '+Ti.App.Properties.getString('phone')+':)',
   textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
   top: 20, left: 60,
@@ -19,7 +19,7 @@ Ti.UI.currentWindow.add(welcome_lbl);
 /////////////////////
 // Lovers number
 var lover_phone_lbl = Ti.UI.createLabel({
-	color:'blue',
+	color:Ti.App.Properties.getString('text_color'),
   text: 'Lover\'s #',
   textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
   top: 110, left: 10,
@@ -30,7 +30,7 @@ Ti.UI.currentWindow.add(lover_phone_lbl);
 var lover_phone_txt = Ti.UI.createTextField({
 	borderColor:'black',
 	borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
-	color: '#336699',
+	color: Ti.App.Properties.getString('text_color'),
   	top: 110, left: 100,
   	width: 150, height: 40
 });
@@ -199,8 +199,7 @@ function handle_lover_found(response)
 	{
 		// TODO: Add a check if the lover is already in love with someone else ;) (check for status=1)
 		Ti.API.info(user_details['name']+': ooh, it seems your lover has not registered yet :(');			
-		alert(user_details['name']+': ooh, it seems your lover has not registered yet :(');
-		Ti.App.Properties.setString("is_logged_in", "true");
+		alert(user_details['name']+': ooh, it seems your lover has not registered yet :(');		
 		user_details['lover_phone'] = lover_phone_txt.value;
 		user_details['status'] = '1';		
 		update_person_record(user_details, null);
@@ -216,7 +215,7 @@ function final_registration_window()
 {
 	var emptyView = Titanium.UI.createView({});	
 	add_lover_win = Ti.UI.createWindow({
-		backgroundColor:'#fff', 		
+		backgroundColor:Ti.App.Properties.getString('back_color'), 		
 		url: 'login_greetings.js',
 		leftNavButton: emptyView,
 		txtmsg: 'Registration done ;)'
