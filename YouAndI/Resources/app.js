@@ -1,15 +1,21 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
-//clear_fields();
+
+clear_fields();
+Ti.App.Properties.setString('status', 2);
+Ti.App.Properties.setString('phone', '18a');
+Ti.App.Properties.setString('lover_phone', '18b');
+
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
+current_window = null;
 
 Titanium.UI.setBackgroundColor('#000');
 // create tab group
 var tabGroup = Titanium.UI.createTabGroup();
-
+var add_lover_win=null;
 function extract_lover_details(lover_ddb)
 {
 	lover = {'name': lover_ddb['name']['S'],
@@ -21,8 +27,38 @@ function extract_lover_details(lover_ddb)
 	}	
 	return lover;
 }
+//current_stage();
+if (Ti.App.Properties.getString('status') == 1)
+{
+	settings_win = 'add_lover.js';
+	render_tabs();
+	render_app();		
 
+	//fetch_status();
+}	
+else if(Ti.App.Properties.getString('status') == 2 || Ti.App.Properties.getString('status') == 3)
+{	
+	//final_registration_window('In status 2 '+Ti.App.Properties.getString("phone")+ ' waiting for '+Ti.App.Properties.getString("lover_phone")+' to register/accept.');
+	fetch_status();		
+}
+/*
+else if()
+{	
+	final_registration_window('In status 3 '+Ti.App.Properties.getString("phone")+ ' sent request to ->'+Ti.App.Properties.getString("lover_phone"));
+}
+*/
+else if(Ti.App.Properties.getString('status') == 4)
+{
+	final_registration_window('Bingo .. you:'+Ti.App.Properties.getString("phone")+ ' and ->'+Ti.App.Properties.getString("lover_phone")+ ' are in love :D');
+}
+else
+{	
+	settings_win = 'basic_registration.js';
+	render_tabs();
+	render_app();		
+}
 
+ 
 function fetch_status()
 {	
 	//var params = '{"RequestJSON" : {"RequestItems":{"lovers": {"Keys": [{"HashKeyElement": {"S":"'+phone+'"}}],"AttributesToGet":["phone", "name", "status", "lover_phone"]}}}}';
@@ -44,19 +80,22 @@ function fetch_status()
 		if (recs.length == 1)
 		{
 			// User didn't mention a lover yet
-			user_details = extract_lover_details(response["data"]["Responses"]["lovers"]["Items"][0]);		
+			//alert('ERROR: not supposed to come here!');
+			final_registration_window(Ti.App.Properties.getString("phone")+ ' sent request to ->'+Ti.App.Properties.getString("lover_phone"));				
 		}
 		else
 		{
 			// User and lover both exist
 			user_details = extract_lover_details(response["data"]["Responses"]["lovers"]["Items"][0]);
 			lover_details = extract_lover_details(response["data"]["Responses"]["lovers"]["Items"][1]);
-			if (user_details['lover_phone'] == lover_details['phone'])
+			if (user_details['lover_phone'] == lover_details['phone'])//&& user_details['phone'] == lover_details['lover_phone'])
 			{
 				//Bingo: They're in love :D
-				final_registration_window();
-			}
+				final_registration_window('Bingo .. you:'+Ti.App.Properties.getString("phone")+ ' and ->'+Ti.App.Properties.getString("lover_phone")+ ' are in love :D');											
+			}			
 		}
+		render_app();							
+
 
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));
@@ -65,80 +104,87 @@ function fetch_status()
 	});			
 }
 
-function final_registration_window()
+function final_registration_window(custom_msg)
 {
 	var emptyView = Titanium.UI.createView({});	
 	add_lover_win = Ti.UI.createWindow({
 		backgroundColor:'#fff', 		
 		url: 'login_greetings.js',
-		leftNavButton: emptyView,
-		txtmsg: 'Registration done ;)'
-	});		
-	//Ti.UI.currentWindow.hide();
-	//add_lover_win.show();
-	tab2.add(add_lover_win);
-	tab2.open(add_lover_win);	
-	//Ti.UI.currentTab.window = add_lover_win;
+		leftNavButton: emptyView
+	});			
+	custom_label = Ti.UI.createLabel({
+		color: 'black',
+		text: custom_msg,
+		font:{fontSize:20,fontFamily:'Helvetica Neue'},
+		textAlign:'center',
+		width:'auto'
+	});	
+	add_lover_win.add(custom_label);
+	current_window = add_lover_win;
+	//tab2.add(add_lover_win);
+	//tab2.open(add_lover_win);
+	render_app();		
 } 
 
-if (Ti.App.Properties.getString('is_logged_in') =='request_sent')
+function current_stage()
 {
-	
-	settings_win = 'add_lover.js';
-}
-else if(Ti.App.Properties.getString('is_logged_in') == "true")
-{	
-	settings_win = 'basic_registration.js';
-}
-else{
-	settings_win = 'basic_registration.js';
+	if (Ti.App.Properties.getString('is_logged_in') =='request_sent')
+	{
+		
+		settings_win = 'add_lover.js';
+	}
+	else if(Ti.App.Properties.getString('is_logged_in') == "true")
+	{	
+		settings_win = 'basic_registration.js';
+	}
+	else{
+		settings_win = 'basic_registration.js';
+	}
 }
 
 function clear_fields()
 {
 	Ti.App.Properties.removeProperty('name');
+	Ti.App.Properties.removeProperty('status');
 	Ti.App.Properties.removeProperty('phone');
 	Ti.App.Properties.removeProperty('is_logged_in');
 	Ti.App.Properties.removeProperty('lover_phone');
 }
 
-//
-// create base UI tab and root window
-//
-var win1 = Titanium.UI.createWindow({  
-    title:'Loves',
-    backgroundColor:'#fff',
-    url:'love.js'
-});
-var tab1 = Titanium.UI.createTab({  
-    icon:'KS_nav_views.png',
-    title:'Loves',
-    window:win1
-});
 
-//
-// create controls tab and root window
-//
-var win2 = Titanium.UI.createWindow({  
-    title:'Settings',
-    backgroundColor:'#fff',
-    url: settings_win
-});
-var tab2 = Titanium.UI.createTab({  
-    icon:'KS_nav_ui.png',
-    title:'Settings',
-    window:win2
-});
+function render_tabs()
+{
+	var win2 = Titanium.UI.createWindow({  
+	    title:'Settings',
+	    backgroundColor:'#fff',
+	    url: settings_win
+	});
+	current_window = win2;
+}
 
-//
-//  add tabs
-//
-tabGroup.addTab(tab2);
-tabGroup.addTab(tab1); 
-
-
-// open tab group
-tabGroup.open();
-if (Ti.App.Properties.getString('phone') != null)
-	fetch_status(); 
-
+function render_app()
+{
+	//
+	// create base UI tab and root window
+	//
+	var win1 = Titanium.UI.createWindow({  
+	    title:'Loves',
+	    backgroundColor:'#fff',
+	    url:'love.js'
+	});
+	var tab1 = Titanium.UI.createTab({  
+	    icon:'KS_nav_views.png',
+	    title:'Loves',   
+	    window:win1 
+	});	
+	
+	var tab2 = Titanium.UI.createTab({  
+	    icon:'KS_nav_ui.png',
+	    title:'Settings',
+	    window:current_window    
+	});
+	
+	tabGroup.addTab(tab2);	
+	tabGroup.addTab(tab1);
+	tabGroup.open(); 	
+}

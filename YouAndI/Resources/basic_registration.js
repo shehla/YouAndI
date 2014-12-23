@@ -120,6 +120,7 @@ function add_user(table_name, user_details, msg)
 		Ti.API.info(JSON.stringify(response));
 		login_user();
 		add_lover_window();
+		Ti.App.Properties.setString('status',1);
 
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));

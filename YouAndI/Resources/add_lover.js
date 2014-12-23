@@ -44,8 +44,7 @@ function check_lover_entered()
 function update_lover()
 {
 	// Lover hasn't added user
-	update_person_record(lover_global, null);
-	Ti.App.Properties.setString("lover_phone", lover_phone_txt.value);
+	update_person_record(lover_global, null);	
 }
 
 // When:
@@ -180,7 +179,8 @@ function handle_lover_found(response)
 			// Update lover record (status and lover_phone)
 			lover_global['status'] = 2;
 			lover_global['lover_phone'] = user_details['phone'];
-			update_person_record(user_details, update_lover);			
+			update_person_record(user_details, update_lover);
+			Ti.App.Properties.setString('status',4);			
 		}
 		// The lover has not sent a request for this guy
 		else{
@@ -189,7 +189,8 @@ function handle_lover_found(response)
 			user_details['status'] = 1;						
 			lover_global['status'] = 1;
 			// TODO: send an email to lover						
-			update_person_record(user_details, update_lover);			
+			update_person_record(user_details, update_lover);
+			Ti.App.Properties.setString('status',3);			
 		}				
 		
 	}
@@ -203,8 +204,10 @@ function handle_lover_found(response)
 		user_details['lover_phone'] = lover_phone_txt.value;
 		user_details['status'] = '1';		
 		update_person_record(user_details, null);
+		Ti.App.Properties.setString('status',2);	
 	}
 	final_registration_window();
+	Ti.App.Properties.setString("lover_phone", lover_phone_txt.value);
 }
 
 ////////////////////////
