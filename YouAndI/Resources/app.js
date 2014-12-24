@@ -1,6 +1,6 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
 Ti.App.Properties.setString('back_color','#AFEEEE');
-Ti.App.Properties.setString('text_color', '#336699');
+Ti.App.Properties.setString('text_color', '#fff');
 //clear_fields();
 /*
 Ti.App.Properties.setString('status', 2);
@@ -108,7 +108,8 @@ function final_registration_window(custom_msg)
 {
 	var emptyView = Titanium.UI.createView({});	
 	add_lover_win = Ti.UI.createWindow({
-		backgroundColor:Ti.App.Properties.getString('back_color'), 		
+		//backgroundColor:Ti.App.Properties.getString('back_color'),
+		backgroundImage: 'blue_bg2.jpg', 		
 		url: 'login_greetings.js',
 		leftNavButton: emptyView
 	});			
@@ -139,7 +140,8 @@ function render_tabs()
 {
 	var win2 = Titanium.UI.createWindow({  
 	    title:'Settings',
-	    backgroundColor:Ti.App.Properties.getString('back_color'),
+	    //backgroundColor:Ti.App.Properties.getString('back_color'),
+	    backgroundImage: 'blue_bg2.jpg',
 	    url: settings_win
 	});
 	current_window = win2;
@@ -152,7 +154,8 @@ function render_app()
 	//
 	var win1 = Titanium.UI.createWindow({  
 	    title:'Loves',
-	    backgroundColor:Ti.App.Properties.getString('back_color'),
+	    //backgroundColor:Ti.App.Properties.getString('back_color'),
+	    backgroundImage: 'blue_bg2.jpg',
 	    url:'love.js'
 	});
 	var tab1 = Titanium.UI.createTab({  
