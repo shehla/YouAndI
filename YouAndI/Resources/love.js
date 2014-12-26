@@ -242,6 +242,7 @@ function render_messages()
 		
 		add_messages_to_view(final_messages[i]);
 	}
+	
 }
 
 
@@ -302,4 +303,5 @@ function add_messages_to_view(message)
 			top_global = top_global + 60;
 			view.add(image1);		
 		}
+		scrollView.scrollToBottom();
 	}
