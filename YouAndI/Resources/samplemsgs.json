@@ -1,0 +1,110 @@
+var recent_messages = 
+  [
+    { 
+      emotion:0,  
+      txt:'Missing you my lailee',
+      timestamp:1419377095,
+      'from_me':true
+    },
+    { 
+      emotion:0,  
+      txt:'Its raining and I\'m missing you',
+      timestamp:1419377295,
+      'from_me':true
+    },
+    {
+      emotion:0,
+      txt:'jhoot na bol',
+      timestamp:1419377295,
+      'from_me':false
+    },
+    {
+      emotion:0,
+      txt:'So deeply in love with you',
+      timestamp:1419377795,
+      'from_me':true
+      
+    },
+    {
+      emotion:0,
+      txt:'aaj janay ki zidh na karo',
+      timestamp:1419377995,
+      'from_me':true
+    },
+    {
+      emotion:0,
+      txt:'shaeron sey lafz ley kay',
+      timestamp:1419378000,
+      'from_me':false
+    },
+    {
+      emotion:0,
+      txt:'dil yeh dhookay dariii',
+      timestamp:1419378001,
+      'from_me':true
+    },
+    {
+      emotion:0,
+      txt:'urr gaey totoay rey',
+      timestamp:1419378002,
+      'from_me':false
+    },
+    {
+      emotion:0,
+      txt:'teray pehlo mein reh lon',
+      timestamp:1419378004,
+      'from_me':true
+    },
+    {
+      emotion:0,
+      txt:'mein khud ko pagal keh don',
+      timestamp:1419378006,
+      'from_me':false
+    },
+    {
+      emotion:1, // love you
+      'from_me':false
+    },    
+    {
+      emotion:0,
+      txt:'tu sey naina jab sey millay',
+      timestamp:1419378008,
+      'from_me':false
+    },
+    {
+      emotion:0,
+      txt:'totii charpai rasta daikjhay',
+      timestamp:1419378010,
+      'from_me':true
+    },
+    {
+      emotion:2, // missing you
+      'from_me':true
+    },    
+    {
+      emotion:0,
+      txt:'bano rey bano meri challi susraal',
+      timestamp:1419378012,
+      'from_me':true
+    },    
+    {
+      emotion:0,
+      txt:'tera mera rishta hay aisa',
+      timestamp:1419378015,
+      'from_me':true
+    },
+    {
+      emotion:0,
+      txt:'ik pal door gawara nahi',
+      timestamp:1419378020,
+      'from_me':false
+    },
+    {
+      emotion:0,
+      txt:'kyun tum hi ho',
+      timestamp:1419378022,
+      'from_me':true
+    },
+    
+              
+  ];

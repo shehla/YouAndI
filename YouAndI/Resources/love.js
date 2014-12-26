@@ -3,6 +3,124 @@ var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
+//messages_from = fetch_messages(Ti.App.Properties.getString('phone'));
+//fetch_messages(Ti.App.Properties.getString('phone'));
+//simple_get();
+
+function extract_messages(msg_response, from_me)
+{
+	msgs = [];
+	for(i=0;i<msg_response.length;i++)
+	{
+		msg = msg_response[i];
+		msg = {'from': msg['from']['S'],
+			'to': msg['to']['S'],
+			'emotion': 0,
+			'txt': msg['message']['S'],
+			'from_me':from_me,  
+			'timestamp': parseInt(msg['timestamp']['N'])};	
+		msgs.push(msg);
+	}			
+	return msgs;
+}
+
+//my_msgs = extract_messages(fetch_messages(Ti.App.Properties.getString('phone')));
+//lover_msgs = extract_messages(fetch_messages(Ti.App.Properties.getString('lover_phone')));
+fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs);
+fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs);
+//alert('msgs->'+JSON.stringify(msgs));
+user_msgs_retrieved = false;
+lover_msgs_retrieved = false;
+final_messages = [];
+user_final_messages = [];
+lover_final_messages = [];
+function if_msgs_fetched()
+{
+	if(user_msgs_retrieved==true && lover_msgs_retrieved==true)	
+	{
+		merge_messages();	
+	}	
+}
+// sort and merge messages to form recent messages.
+function merge_messages()
+{
+	total_msgs = lover_final_messages.length + user_final_messages.length;
+	user_ptr = 0;
+	lover_ptr = 0;
+	for(i=0;i<total_msgs;i++)
+	{
+		if(lover_final_messages[lover_ptr]['timestamp'] < user_final_messages[user_ptr]['timestamp'])
+		{
+			final_messages.push(lover_final_messages[lover_ptr]);
+			Ti.API.info(' adding ----->'+JSON.stringify(lover_final_messages[lover_ptr]));
+			lover_ptr += 1;
+			if (lover_ptr == lover_final_messages.length)
+			{
+				for(x=user_ptr;x<user_final_messages.length;x++)
+					final_messages.push(user_final_messages[x]);
+				break;
+			}			
+		}
+		else
+		{
+			final_messages.push(user_final_messages[user_ptr]);
+			Ti.API.info(' adding User ----->'+JSON.stringify(user_final_messages[user_ptr]));
+			user_ptr += 1;			
+			if (user_ptr == user_final_messages.length)
+			{
+				for(x=lover_ptr;x<lover_final_messages.length;x++)
+					final_messages.push(lover_final_messages[x]);
+				break;	
+			}			
+		}
+	}
+	render_messages();
+}
+
+function get_user_msgs(response)
+{
+	user_msgs_retrieved = true;
+	Ti.API.info('User msgs -->' +JSON.stringify(response));
+	user_final_messages = extract_messages(response["data"]["Items"],true);
+	Ti.API.info(' User -----> '+JSON.stringify(msgs));
+	if_msgs_fetched();
+}
+
+function get_lover_msgs(response)
+{
+	lover_msgs_retrieved = true;
+	Ti.API.info('Lover msgs -->' +JSON.stringify(response));
+	lover_final_messages = extract_messages(response["data"]["Items"],false);
+	Ti.API.info('Lover -----> '+JSON.stringify(msgs));
+	if_msgs_fetched();	
+}
+
+function fetch_messages(phone, callback)
+{	
+	var params = {
+			"RequestJSON" : {
+				"TableName" : 'messages',
+				//"IndexName":"to-timestamp-index",
+				"HashKeyValue" : {
+					"S" : phone
+				},	
+				"RangeKeyCondition": {
+					"AttributeValueList":[{"N":"0"}],"ComparisonOperator":"GT"
+				}			
+			} //Required
+		};	
+		Ti.API.info(JSON.stringify(params));
+	AWS.DDB.query(params,
+			
+		function(data, response) {
+		//alert('Success: '+ JSON.stringify(response));
+		callback(response);		
+  	},  function(message,error) {
+		alert('Error: '+ JSON.stringify(error));
+		Ti.API.info(JSON.stringify(error));
+
+	});				
+}	
 
 function add_message(milliseconds)
 {
@@ -101,172 +219,68 @@ var view = Ti.UI.createView({
   //backgroundImage: 'background_iphone5.jpg',
   borderRadius: 10,
   top: 0,
-  //height: 340,
+  height: 1340,
   //width: 1000
 });
-var recent_messages = 
-	[
-		{	
-			emotion:0,	
-			txt:'Missing you my lailee',
-			timestamp:1419377095,
-			'from_me':true
-		},
-		{	
-			emotion:0,	
-			txt:'Its raining and I\'m missing you',
-			timestamp:1419377295,
-			'from_me':true
-		},
-		{
-			emotion:0,
-			txt:'jhoot na bol',
-			timestamp:1419377295,
-			'from_me':false
-		},
-		{
-			emotion:0,
-			txt:'So deeply in love with you',
-			timestamp:1419377795,
-			'from_me':true
-			
-		},
-		{
-			emotion:0,
-			txt:'aaj janay ki zidh na karo',
-			timestamp:1419377995,
-			'from_me':true
-		},
-		{
-			emotion:0,
-			txt:'shaeron sey lafz ley kay',
-			timestamp:1419378000,
-			'from_me':false
-		},
-		{
-			emotion:0,
-			txt:'dil yeh dhookay dariii',
-			timestamp:1419378001,
-			'from_me':true
-		},
-		{
-			emotion:0,
-			txt:'urr gaey totoay rey',
-			timestamp:1419378002,
-			'from_me':false
-		},
-		{
-			emotion:0,
-			txt:'teray pehlo mein reh lon',
-			timestamp:1419378004,
-			'from_me':true
-		},
-		{
-			emotion:0,
-			txt:'mein khud ko pagal keh don',
-			timestamp:1419378006,
-			'from_me':false
-		},
-		{
-			emotion:1, // love you
-			'from_me':false
-		},		
-		{
-			emotion:0,
-			txt:'tu sey naina jab sey millay',
-			timestamp:1419378008,
-			'from_me':false
-		},
-		{
-			emotion:0,
-			txt:'totii charpai rasta daikjhay',
-			timestamp:1419378010,
-			'from_me':true
-		},
-		{
-			emotion:2, // missing you
-			'from_me':true
-		},		
-		{
-			emotion:0,
-			txt:'bano rey bano meri challi susraal',
-			timestamp:1419378012,
-			'from_me':true
-		},		
-		{
-			emotion:0,
-			txt:'tera mera rishta hay aisa',
-			timestamp:1419378015,
-			'from_me':true
-		},
-		{
-			emotion:0,
-			txt:'ik pal door gawara nahi',
-			timestamp:1419378020,
-			'from_me':false
-		},
-		{
-			emotion:0,
-			txt:'kyun tum hi ho',
-			timestamp:1419378022,
-			'from_me':true
-		},
-		
-							
-	];
+
 
 top_global = 10;
 Ti.API.info(JSON.stringify(recent_messages));
-for(i=0;i<recent_messages.length;i++)
+function render_messages()
 {
-	if(recent_messages[i]['emotion'] == 0)
+	
+	for(i=0;i<final_messages.length;i++)
 	{
-		var namelbl = Ti.UI.createLabel({
-			color:Ti.App.Properties.getString('text_color'),
-		  text: recent_messages[i]['txt'],  
-		  borderRadius: 8,
-		  //backgroundColor: 'white',
-		  borderWidth: 0,
-		  backgroundPaddingLeft: 5,
-		  textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
-		  top: top_global,
-		  //width: 280,
-		  height: 5
-		});
-		if (recent_messages[i]['from_me'])
+		Ti.API.info('=============> num final msgs i->'+i+' ->'+JSON.stringify(final_messages[i]));
+		if(final_messages[i]['emotion'] == 0)
 		{
-			namelbl.left=5;
+			var namelbl = Ti.UI.createLabel({
+				color:Ti.App.Properties.getString('text_color'),
+			  text: final_messages[i]['txt'],  
+			  borderRadius: 8,
+			  //backgroundColor: 'white',
+			  borderWidth: 0,
+			  backgroundPaddingLeft: 5,
+			  textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
+			  top: top_global,
+			  //width: 280,
+			  height: 5
+			});
+			if (final_messages[i]['from_me'])
+			{
+				namelbl.left=5;
+			}
+			else
+			{
+				namelbl.right=5;
+			}
+			view.add(namelbl);
+			top_global = top_global + 40;
 		}
 		else
 		{
-			namelbl.right=5;
+			var image1 = Ti.UI.createImageView({		  
+			  top: top_global,		  
+			  height: 60,
+			  width:60
+			});
+			if (final_messages[i]['from_me'])
+			{
+				image1.left=5;
+			}
+			else
+			{
+				image1.right=5;
+			}
+			
+			if(final_messages[i]['emotion'] == 1)
+				image1.image='love.jpeg';
+			else if(final_messages[i]['emotion'] == 2)
+				image1.image='miss_u.png';
+			
+			top_global = top_global + 60;
+			view.add(image1);		
 		}
-		view.add(namelbl);
-		top_global = top_global + 40;
-	}
-	else
-	{
-		var image1 = Ti.UI.createImageView({		  
-		  top: top_global,		  
-		  height: 60,
-		  width:60
-		});
-		if (recent_messages[i]['from_me'])
-		{
-			image1.left=5;
-		}
-		else
-		{
-			image1.right=5;
-		}
-		
-		if(recent_messages[i]['emotion'] == 1)
-			image1.image='love.jpeg';
-		else if(recent_messages[i]['emotion'] == 2)
-			image1.image='miss_u.png';
-		
-		top_global = top_global + 60;
-		view.add(image1);		
 	}
 }
 

@@ -1,12 +1,15 @@
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
+//var AWS = require('aws-sdk');
+
+
 Ti.App.Properties.setString('back_color','#AFEEEE');
 Ti.App.Properties.setString('text_color', '#fff');
-//clear_fields();
-/*
-Ti.App.Properties.setString('status', 2);
-Ti.App.Properties.setString('phone', '18a');
-Ti.App.Properties.setString('lover_phone', '18b');
-*/
+clear_fields();
+
+Ti.App.Properties.setString('status', 4);
+Ti.App.Properties.setString('phone', 'Mylive786');
+Ti.App.Properties.setString('lover_phone', '565446556');
+
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
