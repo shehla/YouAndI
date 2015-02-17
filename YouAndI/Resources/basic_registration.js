@@ -18,7 +18,7 @@ Ti.UI.currentWindow.add(namelbl);
 var nametxt = Ti.UI.createTextField({
 	borderColor:'black',
 	borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
-	color: Ti.App.Properties.getString('text_color'),
+	color: 'black',
   	top: 10, left: 100,
   	width: 150, height: 40
 });
@@ -38,7 +38,7 @@ Ti.UI.currentWindow.add(phonelbl);
 var phonetxt = Ti.UI.createTextField({
 	borderColor:'black',
 	borderStyle:Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
-	color: Ti.App.Properties.getString('text_color'),
+	color: 'black',
   	top: 60, left: 100,
   	width: 150, height: 40
 });

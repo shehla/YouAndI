@@ -2,13 +2,18 @@
 //var AWS = require('aws-sdk');
 
 
+
+
 Ti.App.Properties.setString('back_color','#AFEEEE');
 Ti.App.Properties.setString('text_color', '#fff');
 clear_fields();
 
+Ti.App.num_msgs = 0;
+Ti.App.global_messages = [];
+
 Ti.App.Properties.setString('status', 4);
-Ti.App.Properties.setString('phone', 'Mylive786');
-Ti.App.Properties.setString('lover_phone', '565446556');
+Ti.App.Properties.setString('phone', '2178199492');
+Ti.App.Properties.setString('lover_phone', '2178191112');
 
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
@@ -165,7 +170,19 @@ function render_app()
 	    icon:'KS_nav_views.png',
 	    title:'Loves',   
 	    window:win1 
-	});	
+	});
+	
+	var win3 = Titanium.UI.createWindow({  
+	    title:'Emotions',
+	    //backgroundColor:Ti.App.Properties.getString('back_color'),
+	    backgroundImage: 'blue_bg2.jpg',
+	    url:'emotions.js'
+	});
+	var tab3 = Titanium.UI.createTab({  
+	    icon:'KS_nav_views.png',
+	    title:'Emotions',   
+	    window:win3
+	});		
 	
 	var tab2 = Titanium.UI.createTab({  
 	    icon:'KS_nav_ui.png',
@@ -173,7 +190,8 @@ function render_app()
 	    window:current_window    
 	});
 	
-	tabGroup.addTab(tab2);	
+	tabGroup.addTab(tab3);
 	tabGroup.addTab(tab1);
+	tabGroup.addTab(tab2);		
 	tabGroup.open(); 	
 }
