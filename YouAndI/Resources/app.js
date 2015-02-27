@@ -9,10 +9,11 @@ clear_fields();
 
 Ti.App.num_msgs = 0;
 Ti.App.global_messages = [];
+//alert('user ph->'+ Ti.App.Properties.getString('last_user_msg_timestamp')+' lover ->'+ Ti.App.Properties.getString('last_lover_msg_timestamp'));
 
 Ti.App.Properties.setString('status', 4);
-Ti.App.Properties.setString('phone', '2178199492');
-Ti.App.Properties.setString('lover_phone', '2178191112');
+Ti.App.Properties.setString('phone', '2178191112');
+Ti.App.Properties.setString('lover_phone', '2178199492');
 
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
@@ -135,7 +136,10 @@ function final_registration_window(custom_msg)
 } 
 
 function clear_fields()
-{
+{	
+	Ti.App.Properties.setString('last_user_msg_timestamp','0');
+	Ti.App.Properties.setString('controls_rendered','0');
+	Ti.App.Properties.setString('last_lover_msg_timestamp','0');
 	Ti.App.Properties.removeProperty('name');
 	Ti.App.Properties.removeProperty('status');
 	Ti.App.Properties.removeProperty('phone');

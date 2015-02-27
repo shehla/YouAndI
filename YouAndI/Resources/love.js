@@ -12,18 +12,19 @@ LABEL_LENGTH = 35;
 blurCalled = false;
 var textArea;
 var button;
-top_global = 10;
 var scrollView;
 var view;
 
 //refresh_messages_screen();
 
-function makeScrollViewProperlyVisible()
-{
+function render_UI()
+{		 
+	create_controls();
 	add_textarea_and_send_btn();
 	show_messages_on_view();
 	scrollView.setContentOffset({x:0,y:view.getHeight()-450},{animated:false});		
-	scrollView.setVisible(true);	
+	scrollView.setVisible(true);
+	Ti.App.Properties.setString('controls_rendered','1');	
 }
 
 function create_controls()
@@ -66,23 +67,41 @@ function create_controls()
 	});			
 }
 
+function init_startup_global_vars()
+{
+	total_user_messages = 0;
+	total_lover_messages = 0;	
+	top_global = 10;
+}
+
 function refresh_messages_screen()
 {
-	init_structs();
-	if (Ti.App.win1.getChildren().length > 0)
+	if (Ti.App.Properties.getString('controls_rendered')=='1')
 	{		
-		for(i=0;i<Ti.App.win1.getChildren().length;i++)
-			Ti.App.win1.remove(Ti.App.win1.children[i]);
-	}			
-
+		callback_for_UI	= show_messages_on_view;
+	}
+	else
+	{	
+		if (Ti.App.win1.getChildren().length > 0)
+		{		
+			for(i=0;i<Ti.App.win1.getChildren().length;i++)
+				Ti.App.win1.remove(Ti.App.win1.children[i]);
+		}
+		init_startup_global_vars();
+		callback_for_UI	= render_UI;
+	}
+	init_structs();	
 	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
 	{
-		fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
-		fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
-		//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
-		//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
+		last_user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
+		last_lover_timestamp = Ti.App.Properties.getString('last_lover_msg_timestamp');
+		
+		fetch_messages(Ti.App.Properties.getString('phone'), last_user_timestamp, get_user_msgs, callback_for_UI);
+		fetch_messages(Ti.App.Properties.getString('lover_phone'), last_lover_timestamp, get_lover_msgs, callback_for_UI);
+		//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, render_UI);
+		//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, render_UI);
 	}
-	create_controls();
+		
 }
 // sort and merge messages to form recent messages.
 
@@ -173,6 +192,9 @@ function show_messages_on_view()
 	}
 	Ti.App.global_messages = final_messages;
 	Ti.App.num_msgs = final_messages.length;
+	total_user_messages += user_final_messages.length;
+	total_lover_messages += lover_final_messages.length;
+	scrollView.scrollToBottom();
 }
 
 
@@ -184,12 +206,10 @@ function put_message_to_view(message)
 			color:Ti.App.Properties.getString('text_color'),
 		  text: message['txt'],  
 		  borderRadius: 8,
-		  //backgroundColor: 'white',
 		  borderWidth: 0,
 		  backgroundPaddingLeft: 5,
 		  textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
 		  top: top_global,
-		  //width: 280,
 		  height: 5
 		});
 		if (message['from_me'])
@@ -242,5 +262,4 @@ function put_message_to_view(message)
 		view.height = view.height + 60;
 		view.add(image1);		
 	}	
-	//scrollView.scrollToBottom();
 }
