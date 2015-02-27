@@ -1,3 +1,5 @@
+Ti.include('notifications.js');
+Ti.include('fetch_messages.js');
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
@@ -5,197 +7,87 @@ var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 LABEL_LENGTH = 35;
 
-function extract_messages(msg_response, from_me)
-{
-	msgs = [];
-	for(i=0;i<msg_response.length;i++)
-	{
-		msg = msg_response[i];
-		if(msg['message'])
-			txt_msg = msg['message']['S'];
-		else
-			txt_msg = '';		
-		if(msg['emotion'])
-		{			
-			this_emotion = parseInt(msg['emotion']['N']);
-		}
-		else
-			this_emotion = 0;
-		msg_dict = {'from': msg['from']['S'],
-			'to': msg['to']['S'],
-			'emotion': this_emotion,
-			'txt': txt_msg,
-			'from_me':from_me,  
-			'timestamp': parseInt(msg['timestamp']['N'])};	
-		msgs.push(msg_dict);
-	}			
-	return msgs;
-}
 
-if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
-{
-	fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs);
-	fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs);
-}
-user_msgs_retrieved = false;
-lover_msgs_retrieved = false;
-final_messages = [];
-user_final_messages = [];
-lover_final_messages = [];
+// bug in titanium https://jira.appcelerator.org/browse/TIMOB-16496
+blurCalled = false;
+var textArea;
+var button;
+top_global = 10;
+var scrollView;
+var view;
+
+//refresh_messages_screen();
+
 function if_msgs_fetched()
 {
 	if(user_msgs_retrieved==true && lover_msgs_retrieved==true)	
 	{
-		merge_messages();	
+		merge_messages();				
+		scrollView.setContentOffset({x:0,y:view.getHeight()-450},{animated:false});		
+		scrollView.setVisible(true);		
+	}		
+}
+
+function refresh_messages_screen()
+{
+	init_structs();
+	if (Ti.App.win1.getChildren().length > 0)
+	{		
+		for(i=0;i<Ti.App.win1.getChildren().length;i++)
+			Ti.App.win1.remove(Ti.App.win1.children[i]);
 	}	
+			
+	scrollView = Ti.UI.createScrollView({
+	  contentWidth: 'auto',
+	  contentHeight: 'auto',
+	  showVerticalScrollIndicator: true,
+	  showHorizontalScrollIndicator: true,
+	  top:0,
+	  height: 450,
+	  visible: false,
+	  //height: '80%',
+	  //width: '80%'
+	});
+	view = Ti.UI.createView({
+	  //backgroundColor:Ti.App.Properties.getString('back_color'),
+	  //backgroundImage: 'background_iphone5.jpg',
+	  borderRadius: 10,
+	  top: 0,
+	  height: 0,
+	  //width: 1000
+	});
+
+	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
+	{
+		//fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs);
+		//fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs);
+		mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs);
+		mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs);
+	}
+	
+	
+	scrollView.add(view);	
+	Ti.App.win1.add(scrollView);	
+	Ti.App.win1.addEventListener('focus', function(e){				
+			this_msgs = eval(Ti.App.global_messages);
+			if(Ti.App.num_msgs < this_msgs.length)
+			{
+				for(x=Ti.App.num_msgs;x<this_msgs.length;x++)
+				{
+					add_messages_to_view(this_msgs[x]);
+				}
+				Ti.App.num_msgs = this_msgs.length;
+			}
+	});		
 }
 // sort and merge messages to form recent messages.
-function merge_messages()
-{
-	total_msgs = lover_final_messages.length + user_final_messages.length;
-	user_ptr = 0;
-	lover_ptr = 0;
-	for(i=0;i<total_msgs;i++)
-	{
-		if(lover_final_messages[lover_ptr]['timestamp'] < user_final_messages[user_ptr]['timestamp'])
-		{
-			final_messages.push(lover_final_messages[lover_ptr]);
-			Ti.API.info(' adding LOVER EMOTION ----->'+JSON.stringify(lover_final_messages[user_ptr]));			
-			lover_ptr += 1;
-			if (lover_ptr == lover_final_messages.length)
-			{				
-				for(x=user_ptr;x<user_final_messages.length;x++)
-				{
-					Ti.API.info(' adding LOVER EMOTION inn ----->'+JSON.stringify(user_final_messages[x]));
-					final_messages.push(user_final_messages[x]);
-				}
-				break;
-			}			
-		}
-		else
-		{
-			final_messages.push(user_final_messages[user_ptr]);
-			//if (user_final_messages[user_ptr]['emotion'])
-			Ti.API.info(' adding EMOTION ----->'+JSON.stringify(user_final_messages[user_ptr]));
-			user_ptr += 1;			
-			if (user_ptr == user_final_messages.length)
-			{				
-				for(x=lover_ptr;x<lover_final_messages.length;x++)
-				{
-					//if (user_final_messages[x]['emotion'])
-					Ti.API.info(' adding EMOTION inn ----->'+JSON.stringify(lover_final_messages[x]));
-					
-					final_messages.push(lover_final_messages[x]);
-				}
-				break;	
-			}			
-		}
-	}
-	render_textfield_send_btn();
-	render_messages();
-	view.addEventListener('click',function(e){    	
-      	textArea.blur();    	
-	});
-	
-}
-
-function get_user_msgs(response)
-{
-	user_msgs_retrieved = true;
-	Ti.API.info('User msgs -->' +JSON.stringify(response));
-	user_final_messages = extract_messages(response["data"]["Items"],true);
-	Ti.API.info(' User -----> '+JSON.stringify(msgs));
-	if_msgs_fetched();
-}
-
-function get_lover_msgs(response)
-{
-	lover_msgs_retrieved = true;
-	Ti.API.info('Lover msgs -->' +JSON.stringify(response));
-	lover_final_messages = extract_messages(response["data"]["Items"],false);
-	Ti.API.info('Lover -----> '+JSON.stringify(msgs));
-	if_msgs_fetched();	
-}
-
-function fetch_messages(phone, callback)
-{	
-	var params = {
-			"RequestJSON" : {
-				"TableName" : 'messages',
-				//"IndexName":"to-timestamp-index",
-				"HashKeyValue" : {
-					"S" : phone
-				},	
-				"RangeKeyCondition": {
-					"AttributeValueList":[{"N":"0"}],"ComparisonOperator":"GT"
-				}			
-			} //Required
-		};	
-		Ti.API.info(JSON.stringify(params));
-	AWS.DDB.query(params,
-			
-		function(data, response) {
-		//alert('Success: '+ JSON.stringify(response));
-		callback(response);		
-  	},  function(message,error) {
-		alert('Error: '+ JSON.stringify(error));
-		Ti.API.info(JSON.stringify(error));
-
-	});				
-}	
-
-function add_message(milliseconds)
-{
-	cur_time = milliseconds.toString();
-	var params = {
-			'RequestJSON' : {
-				"TableName" : 'messages',
-				"Item" : {
-					"from" : { "S" : Ti.App.Properties.getString('phone')}, //Required					
-					'to' : { 'S' : Ti.App.Properties.getString('lover_phone')},
-					'timestamp': { 'N' : cur_time},
-					'message': { 'S' : textArea.value}						
-				}
-			} //Required
-		};
-		
-			
-	Ti.API.info('add_message: '+JSON.stringify(params));
-	
-	
-		
-		AWS.DDB.putItem(params,
-			
-		function(data, response) {
-		Ti.API.info(JSON.stringify(response));
-		final_messages.push({'from': Ti.App.Properties.getString('phone'),
-			'to': Ti.App.Properties.getString('lover_phone'),
-			'emotion': 0,
-			'txt':textArea.value,
-			'from_me':true,
-			'timestamp': cur_time
-		});
-		Ti.App.global_messages = final_messages;
-		add_messages_to_view(final_messages[final_messages.length-1]);
-		textArea.blur();
-		textArea.value ='';
-
-  	},  function(message,error) {
-		alert('Error: '+ JSON.stringify(error));
-		Ti.API.info(JSON.stringify(error));
-
-	});	
-}
 
 function update_view_keyboad_shut()
 {	
     view.height -= 166;
-    scrollView.scrollToBottom();	
+    //scrollView.scrollToBottom();	
 }
-// bug in titanium https://jira.appcelerator.org/browse/TIMOB-16496
-blurCalled = false;
-var textArea = null;
-var button = null;
+
 function render_textfield_send_btn()
 {	
 	view.height = view.height + 35;
@@ -219,7 +111,7 @@ function render_textfield_send_btn()
 	
 	textArea.addEventListener('focus', function() {
 	    view.height += 166;
-	    scrollView.scrollToBottom();
+	    //scrollView.scrollToBottom();
 	});
 	 
 	textArea.addEventListener('blur', function() {
@@ -263,31 +155,9 @@ function render_textfield_send_btn()
 			alert('Please enter a message to send.');
 		}		
 	});
-	scrollView.scrollToBottom();
+	//scrollView.scrollToBottom();
 }
 //////////////////////////////////////////////////////
-
-var scrollView = Ti.UI.createScrollView({
-  contentWidth: 'auto',
-  contentHeight: 'auto',
-  showVerticalScrollIndicator: true,
-  showHorizontalScrollIndicator: true,
-  top:0,
-  height: 450,
-  //height: '80%',
-  //width: '80%'
-});
-var view = Ti.UI.createView({
-  //backgroundColor:Ti.App.Properties.getString('back_color'),
-  //backgroundImage: 'background_iphone5.jpg',
-  borderRadius: 10,
-  top: 0,
-  height: 0,
-  //width: 1000
-});
-
-
-top_global = 10;
 
 function render_messages()
 {
@@ -301,14 +171,8 @@ function render_messages()
 }
 
 
-
-scrollView.add(view);
-//Ti.UI.currentWindow.add(table);
-Ti.UI.currentWindow.add(scrollView);
-
 function add_messages_to_view(message)
 {
-	
 	if(message['emotion'] == 0)
 	{
 		var namelbl = Ti.UI.createLabel({
@@ -373,17 +237,5 @@ function add_messages_to_view(message)
 		view.height = view.height + 60;
 		view.add(image1);		
 	}	
-	scrollView.scrollToBottom();
+	//scrollView.scrollToBottom();
 }
-
-Ti.UI.currentWindow.addEventListener('focus', function(e){				
-		this_msgs = eval(Ti.App.global_messages);
-		if(Ti.App.num_msgs < this_msgs.length)
-		{
-			for(x=Ti.App.num_msgs;x<this_msgs.length;x++)
-			{
-				add_messages_to_view(this_msgs[x]);
-			}
-			Ti.App.num_msgs = this_msgs.length;
-		}
-	});
