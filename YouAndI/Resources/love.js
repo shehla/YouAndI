@@ -18,14 +18,10 @@ var view;
 
 //refresh_messages_screen();
 
-function if_msgs_fetched()
+function makeScrollViewProperlyVisible()
 {
-	if(user_msgs_retrieved==true && lover_msgs_retrieved==true)	
-	{
-		merge_messages();				
-		scrollView.setContentOffset({x:0,y:view.getHeight()-450},{animated:false});		
-		scrollView.setVisible(true);		
-	}		
+	scrollView.setContentOffset({x:0,y:view.getHeight()-450},{animated:false});		
+	scrollView.setVisible(true);	
 }
 
 function refresh_messages_screen()
@@ -59,10 +55,10 @@ function refresh_messages_screen()
 
 	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
 	{
-		//fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs);
-		//fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs);
-		mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs);
-		mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs);
+		//fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
+		//fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
+		mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
+		mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
 	}
 	
 	

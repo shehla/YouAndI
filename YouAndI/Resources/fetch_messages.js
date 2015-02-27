@@ -4,6 +4,15 @@ final_messages = [];
 user_final_messages = [];
 lover_final_messages = [];
 
+function if_msgs_fetched(ui_cb_after_merging_messages_for_display)
+{
+	if(user_msgs_retrieved==true && lover_msgs_retrieved==true)	
+	{
+		merge_messages();				
+		ui_cb_after_merging_messages_for_display();		
+	}		
+}
+
 function init_structs()
 {
 	user_msgs_retrieved = false;
@@ -65,25 +74,25 @@ function merge_messages()
 	
 }
 
-function get_user_msgs(response)
+function get_user_msgs(response, ui_cb_after_merging_messages_for_display)
 {
 	user_msgs_retrieved = true;
 	Ti.API.info('User msgs -->' +JSON.stringify(response));
 	user_final_messages = extract_messages(response["data"]["Items"],true);
 	Ti.API.info(' User -----> '+JSON.stringify(msgs));
-	if_msgs_fetched();
+	if_msgs_fetched(ui_cb_after_merging_messages_for_display);
 }
 
-function get_lover_msgs(response)
+function get_lover_msgs(response, ui_cb_after_merging_messages_for_display)
 {
 	lover_msgs_retrieved = true;
 	Ti.API.info('Lover msgs -->' +JSON.stringify(response));
 	lover_final_messages = extract_messages(response["data"]["Items"],false);
 	Ti.API.info('Lover -----> '+JSON.stringify(msgs));
-	if_msgs_fetched();	
+	if_msgs_fetched(ui_cb_after_merging_messages_for_display);	
 }
 
-function mock_fetch_messages(phone, callback)
+function mock_fetch_messages(phone, callback, ui_cb_after_merging_messages_for_display)
 {
 	response = {
 		"data": {
@@ -98,10 +107,10 @@ function mock_fetch_messages(phone, callback)
 			]
 		}
 	};
-	callback(response);
+	callback(response, ui_cb_after_merging_messages_for_display);
 }
 
-function fetch_messages(phone, callback)
+function fetch_messages(phone, callback, ui_cb_after_merging_messages_for_display)
 {	
 	var params = {
 			"RequestJSON" : {
@@ -120,7 +129,7 @@ function fetch_messages(phone, callback)
 			
 		function(data, response) {
 		//alert('Success: '+ JSON.stringify(response));
-		callback(response);		
+		callback(response, ui_cb_after_merging_messages_for_display);		
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));
 		Ti.API.info(JSON.stringify(error));
