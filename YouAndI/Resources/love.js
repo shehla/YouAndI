@@ -20,21 +20,14 @@ var view;
 
 function makeScrollViewProperlyVisible()
 {
-	render_textfield_send_btn();
-	render_messages();
+	add_textarea_and_send_btn();
+	show_messages_on_view();
 	scrollView.setContentOffset({x:0,y:view.getHeight()-450},{animated:false});		
 	scrollView.setVisible(true);	
 }
 
-function refresh_messages_screen()
+function create_controls()
 {
-	init_structs();
-	if (Ti.App.win1.getChildren().length > 0)
-	{		
-		for(i=0;i<Ti.App.win1.getChildren().length;i++)
-			Ti.App.win1.remove(Ti.App.win1.children[i]);
-	}	
-			
 	scrollView = Ti.UI.createScrollView({
 	  contentWidth: 'auto',
 	  contentHeight: 'auto',
@@ -56,16 +49,7 @@ function refresh_messages_screen()
 	});
 	view.addEventListener('click',function(e){    	
       	textArea.blur();    	
-	});
-
-	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
-	{
-		fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
-		fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
-		//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
-		//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
-	}
-	
+	});	
 	
 	scrollView.add(view);	
 	Ti.App.win1.add(scrollView);	
@@ -75,21 +59,39 @@ function refresh_messages_screen()
 			{
 				for(x=Ti.App.num_msgs;x<this_msgs.length;x++)
 				{
-					add_messages_to_view(this_msgs[x]);
+					put_message_to_view(this_msgs[x]);
 				}
 				Ti.App.num_msgs = this_msgs.length;
 			}
-	});		
+	});			
+}
+
+function refresh_messages_screen()
+{
+	init_structs();
+	if (Ti.App.win1.getChildren().length > 0)
+	{		
+		for(i=0;i<Ti.App.win1.getChildren().length;i++)
+			Ti.App.win1.remove(Ti.App.win1.children[i]);
+	}			
+
+	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
+	{
+		fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
+		fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
+		//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
+		//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
+	}
+	create_controls();
 }
 // sort and merge messages to form recent messages.
 
 function update_view_keyboad_shut()
 {	
-    view.height -= 166;
-    //scrollView.scrollToBottom();	
+    view.height -= 166;	
 }
 
-function render_textfield_send_btn()
+function add_textarea_and_send_btn()
 {	
 	view.height = view.height + 35;
 	textArea = Ti.UI.createTextField({
@@ -126,11 +128,6 @@ function render_textfield_send_btn()
 	  		blurCalled = false;
 	  	}
 	});
-	/*
-	textArea.addEventListener('return', function() {
-		update_view_keyboad_shut();
-	});
-	*/	
 	button = Ti.UI.createButton({
 		title: 'Send',
 		color:'white',
@@ -149,38 +146,37 @@ function render_textfield_send_btn()
 			var milliseconds = (new Date).getTime();
 			Ti.API.info('User: '+Ti.App.Properties.getString('phone')+' Sending message: '+textArea.value+' to lover->'+Ti.App.Properties.getString('lover_phone')+' at time->'+milliseconds);
 			
-			add_message(milliseconds, postAddingMessageToDataStore);
+			add_message(milliseconds, post_message_send_notification_and_update_views);
 		}
 		else
 		{
 			alert('Please enter a message to send.');
 		}		
 	});
-	//scrollView.scrollToBottom();
 }
 
-function postAddingMessageToDataStore()
+function post_message_send_notification_and_update_views()
 {
 	send_notification(0, textArea.value);
-	add_messages_to_view(final_messages[final_messages.length-1]);
+	put_message_to_view(final_messages[final_messages.length-1]);
 	textArea.blur();
 	textArea.value ='';	
 }
 //////////////////////////////////////////////////////
 
-function render_messages()
+function show_messages_on_view()
 {
 	for(i=0;i<final_messages.length;i++)
 	{
 		
-		add_messages_to_view(final_messages[i]);
+		put_message_to_view(final_messages[i]);
 	}
 	Ti.App.global_messages = final_messages;
 	Ti.App.num_msgs = final_messages.length;
 }
 
 
-function add_messages_to_view(message)
+function put_message_to_view(message)
 {
 	if(message['emotion'] == 0)
 	{

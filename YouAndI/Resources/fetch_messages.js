@@ -132,7 +132,7 @@ function fetch_messages(phone, callback, ui_cb_after_merging_messages_for_displa
 	});				
 }	
 
-function add_message(milliseconds, _postAddingMessageToDataStore)
+function add_message(milliseconds, _post_message_send_notification_and_update_views)
 {
 	cur_time = milliseconds.toString();
 	var params = {
@@ -164,7 +164,7 @@ function add_message(milliseconds, _postAddingMessageToDataStore)
 			'timestamp': cur_time
 		});
 		Ti.App.global_messages = final_messages;		
-		_postAddingMessageToDataStore();
+		_post_message_send_notification_and_update_views();
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));
 		Ti.API.info(JSON.stringify(error));
