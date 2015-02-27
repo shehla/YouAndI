@@ -20,6 +20,8 @@ var view;
 
 function makeScrollViewProperlyVisible()
 {
+	render_textfield_send_btn();
+	render_messages();
 	scrollView.setContentOffset({x:0,y:view.getHeight()-450},{animated:false});		
 	scrollView.setVisible(true);	
 }
@@ -52,13 +54,16 @@ function refresh_messages_screen()
 	  height: 0,
 	  //width: 1000
 	});
+	view.addEventListener('click',function(e){    	
+      	textArea.blur();    	
+	});
 
 	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
 	{
-		//fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
-		//fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
-		mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
-		mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
+		fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
+		fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
+		//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, makeScrollViewProperlyVisible);
+		//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, makeScrollViewProperlyVisible);
 	}
 	
 	
@@ -144,7 +149,7 @@ function render_textfield_send_btn()
 			var milliseconds = (new Date).getTime();
 			Ti.API.info('User: '+Ti.App.Properties.getString('phone')+' Sending message: '+textArea.value+' to lover->'+Ti.App.Properties.getString('lover_phone')+' at time->'+milliseconds);
 			
-			add_message(milliseconds);
+			add_message(milliseconds, postAddingMessageToDataStore);
 		}
 		else
 		{
@@ -152,6 +157,14 @@ function render_textfield_send_btn()
 		}		
 	});
 	//scrollView.scrollToBottom();
+}
+
+function postAddingMessageToDataStore()
+{
+	send_notification(0, textArea.value);
+	add_messages_to_view(final_messages[final_messages.length-1]);
+	textArea.blur();
+	textArea.value ='';	
 }
 //////////////////////////////////////////////////////
 

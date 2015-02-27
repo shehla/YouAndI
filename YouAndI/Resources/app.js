@@ -11,8 +11,8 @@ Ti.App.num_msgs = 0;
 Ti.App.global_messages = [];
 
 Ti.App.Properties.setString('status', 4);
-Ti.App.Properties.setString('phone', '2178191112');
-Ti.App.Properties.setString('lover_phone', '2178199492');
+Ti.App.Properties.setString('phone', '2178199492');
+Ti.App.Properties.setString('lover_phone', '2178191112');
 
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
