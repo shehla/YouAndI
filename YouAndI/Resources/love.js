@@ -6,14 +6,15 @@ var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 LABEL_LENGTH = 35;
-
+KEYBOARD_HEIGHT = 200;
 
 // bug in titanium https://jira.appcelerator.org/browse/TIMOB-16496
 blurCalled = false;
 var textArea;
 var button;
 var scrollView;
-var view;
+var message_view;
+var text_btn_view;
 
 //refresh_messages_screen();
 
@@ -22,7 +23,7 @@ function render_UI()
 	create_controls();
 	add_textarea_and_send_btn();
 	show_messages_on_view();
-	scrollView.setContentOffset({x:0,y:view.getHeight()-450},{animated:false});		
+	scrollView.setContentOffset({x:0,y:message_view.getHeight()-450},{animated:false});		
 	scrollView.setVisible(true);
 	Ti.App.Properties.setString('controls_rendered','1');	
 }
@@ -35,12 +36,12 @@ function create_controls()
 	  showVerticalScrollIndicator: true,
 	  showHorizontalScrollIndicator: true,
 	  top:0,
-	  height: 450,
+	  height: 420,
 	  visible: false,
 	  //height: '80%',
 	  //width: '80%'
 	});
-	view = Ti.UI.createView({
+	message_view = Ti.UI.createView({
 	  //backgroundColor:Ti.App.Properties.getString('back_color'),
 	  //backgroundImage: 'background_iphone5.jpg',
 	  borderRadius: 10,
@@ -48,12 +49,21 @@ function create_controls()
 	  height: 0,
 	  //width: 1000
 	});
-	view.addEventListener('click',function(e){    	
+	text_btn_view = Ti.UI.createView({
+	  backgroundColor:'grey',
+	  //backgroundImage: 'background_iphone5.jpg',
+	  borderRadius: 10,
+	  top: 420,
+	  height: 30,	  
+	  //width: 1000
+	});
+	message_view.addEventListener('click',function(e){    	
       	textArea.blur();    	
 	});	
 	
-	scrollView.add(view);	
+	scrollView.add(message_view);	
 	Ti.App.win1.add(scrollView);	
+	Ti.App.win1.add(text_btn_view);
 	Ti.App.win1.addEventListener('focus', function(e){				
 			this_msgs = eval(Ti.App.global_messages);
 			if(Ti.App.num_msgs < this_msgs.length)
@@ -76,6 +86,8 @@ function init_startup_global_vars()
 
 function refresh_messages_screen()
 {
+	Ti.API.info('------------------------\n in refresh_messages_screen');
+	init_structs();
 	if (Ti.App.Properties.getString('controls_rendered')=='1')
 	{		
 		callback_for_UI	= show_messages_on_view;
@@ -89,8 +101,7 @@ function refresh_messages_screen()
 		}
 		init_startup_global_vars();
 		callback_for_UI	= render_UI;
-	}
-	init_structs();	
+	}		
 	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
 	{
 		last_user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
@@ -107,12 +118,14 @@ function refresh_messages_screen()
 
 function update_view_keyboad_shut()
 {	
-    view.height -= 166;	
+    text_btn_view.top += KEYBOARD_HEIGHT;
+	scrollView.top += KEYBOARD_HEIGHT;	
 }
 
 function add_textarea_and_send_btn()
 {	
-	view.height = view.height + 35;
+	message_view.height = message_view.height + 35;
+	text_btn_view.height = text_btn_view.height + 35;
 	textArea = Ti.UI.createTextField({
 	  borderWidth: 2,
 	  bubbleParent: false,
@@ -125,14 +138,16 @@ function add_textarea_and_send_btn()
 	  //returnKeyType: Ti.UI.RETURNKEY_DEFAULT,
 	  textAlign: 'left',
 	  //value: 'I am a textarea',
-	  top: top_global,
+	  top: 5,
 	  left:5,
 	  width: 250, height : 25
 	});
-	view.add(textArea);
+	text_btn_view.add(textArea);
 	
 	textArea.addEventListener('focus', function() {
-	    view.height += 166;
+	    text_btn_view.top -= KEYBOARD_HEIGHT;
+	    scrollView.top = scrollView.top - KEYBOARD_HEIGHT;
+	    //message_view.height = message_view.height - 200;// - text_btn_view.height;
 	    //scrollView.scrollToBottom();
 	});
 	 
@@ -150,13 +165,13 @@ function add_textarea_and_send_btn()
 	button = Ti.UI.createButton({
 		title: 'Send',
 		color:'white',
-		top: top_global,
+		top: 5,
 		bubbleParent: false,
 		left: 260,	
 		width: 50,
 		height: 25
 	});
-	view.add(button);
+	text_btn_view.add(button);
 	
 	button.addEventListener('click', function(e){				
 		// Did user enter name and phone?
@@ -178,8 +193,11 @@ function post_message_send_notification_and_update_views()
 {
 	send_notification(0, textArea.value);
 	put_message_to_view(final_messages[final_messages.length-1]);
+	scrollView.scrollToBottom();	
+	Ti.App.Properties.setString('last_user_msg_timestamp', final_messages[final_messages.length-1]['timestamp']);
 	textArea.blur();
 	textArea.value ='';	
+	final_messages = [];
 }
 //////////////////////////////////////////////////////
 
@@ -189,17 +207,18 @@ function show_messages_on_view()
 	{
 		
 		put_message_to_view(final_messages[i]);
-	}
+	}	
 	Ti.App.global_messages = final_messages;
 	Ti.App.num_msgs = final_messages.length;
 	total_user_messages += user_final_messages.length;
 	total_lover_messages += lover_final_messages.length;
 	scrollView.scrollToBottom();
+	final_messages = [];
 }
 
 
 function put_message_to_view(message)
-{
+{	
 	if(message['emotion'] == 0)
 	{
 		var namelbl = Ti.UI.createLabel({
@@ -220,11 +239,11 @@ function put_message_to_view(message)
 		{
 			namelbl.right=5;
 		}
-		view.add(namelbl);
+		message_view.add(namelbl);
 		top_global = top_global + LABEL_LENGTH;
-		textArea.top += LABEL_LENGTH;
-		button.top += LABEL_LENGTH;
-		view.height = view.height + LABEL_LENGTH;		
+		//textArea.top += LABEL_LENGTH;
+		//button.top += LABEL_LENGTH;
+		message_view.height = message_view.height + LABEL_LENGTH;		
 	}
 	else
 	{			
@@ -243,23 +262,26 @@ function put_message_to_view(message)
 		}
 		
 		if(message['emotion'] == 1)
-			image1.image='love.jpeg';
+		{
+			image1.image='love.gif';
+			//image1.width=100;
+		}
 		else if(message['emotion'] == 2)
 		{
 			
-			image1.image='miss_u.png';
+			image1.image='miss_u.gif';			
 		}
 		else if(message['emotion'] == 3)
-			image1.image='sorry.jpeg';			
+			image1.image='sorry.gif';			
 		else if(message['emotion'] == 4)
-			image1.image='mad.jpeg';			
+			image1.image='mad.gif';			
 			
 		
 		
 		top_global = top_global + 60;
-		textArea.top += 60;
-		button.top += 60;		
-		view.height = view.height + 60;
-		view.add(image1);		
+		//textArea.top += 60;
+		//button.top += 60;		
+		message_view.height = message_view.height + 60;
+		message_view.add(image1);		
 	}	
 }

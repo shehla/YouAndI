@@ -12,8 +12,8 @@ Ti.App.global_messages = [];
 //alert('user ph->'+ Ti.App.Properties.getString('last_user_msg_timestamp')+' lover ->'+ Ti.App.Properties.getString('last_lover_msg_timestamp'));
 
 Ti.App.Properties.setString('status', 4);
-Ti.App.Properties.setString('phone', '2178191112');
-Ti.App.Properties.setString('lover_phone', '2178199492');
+Ti.App.Properties.setString('phone', '2178199492');
+Ti.App.Properties.setString('lover_phone', '2178191112');
 
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
@@ -198,7 +198,7 @@ function render_app()
 	tabGroup.addTab(tab2);			
 	tabGroup.open(); 	
 	tabGroup.addEventListener('focus',function(e){		
-	    if(e.index == 1){
+	    if(e.index == 1 && Ti.App.Properties.getString('controls_rendered')=='0'){
 	    	Ti.include('love.js');	    	
 			refresh_messages_screen();
 			tabGroup.setActiveTab(1);	 

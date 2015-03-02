@@ -7,8 +7,10 @@ lover_final_messages = [];
 function if_msgs_fetched(ui_cb_after_merging_messages_for_display)
 {
 	if(user_msgs_retrieved==true && lover_msgs_retrieved==true)	
-	{
-		merge_messages();				
+	{		
+		user_msgs_retrieved = false;
+		lover_msgs_retrieved = false;
+		merge_messages();		
 		ui_cb_after_merging_messages_for_display();		
 	}		
 }
@@ -47,6 +49,7 @@ function get_last_msg_timestamp(message_list, total_messages)
 
 function merge_messages()
 {
+	Ti.API.info('==================================\nIn merge message --->');
 	last_timestsamp = get_last_msg_timestamp(user_final_messages, total_user_messages);
 	if (last_timestsamp=='-1')
 		new_user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
