@@ -15,6 +15,16 @@ var button;
 var scrollView;
 var message_view;
 var text_btn_view;
+var table = Ti.UI.createTableView({
+        separatorColor : 'transparent',
+        top            : 40,
+        backgroundColor:'transparent'
+        //height         : '80%'
+});
+
+table.appendRow(Ti.UI.createTableViewRow({
+        className: 'youandirow',
+    }));
 
 //refresh_messages_screen();
 
@@ -36,7 +46,7 @@ function create_controls()
 	  showVerticalScrollIndicator: true,
 	  showHorizontalScrollIndicator: true,
 	  top:0,
-	  height: 420,
+	  height: 415,
 	  visible: false,
 	  //height: '80%',
 	  //width: '80%'
@@ -50,11 +60,11 @@ function create_controls()
 	  //width: 1000
 	});
 	text_btn_view = Ti.UI.createView({
-	  backgroundColor:'grey',
+	  backgroundColor:'#808080',
 	  //backgroundImage: 'background_iphone5.jpg',
-	  borderRadius: 10,
-	  top: 420,
-	  height: 30,	  
+	  //borderRadius: 10,
+	  top: 415,
+	  height: 7,	  
 	  //width: 1000
 	});
 	message_view.addEventListener('click',function(e){    	
@@ -140,7 +150,7 @@ function add_textarea_and_send_btn()
 	  //value: 'I am a textarea',
 	  top: 5,
 	  left:5,
-	  width: 250, height : 25
+	  width: 250, height : 30
 	});
 	text_btn_view.add(textArea);
 	
@@ -207,7 +217,8 @@ function show_messages_on_view()
 	{
 		
 		put_message_to_view(final_messages[i]);
-	}	
+	}
+	message_view.add(table);	
 	Ti.App.global_messages = final_messages;
 	Ti.App.num_msgs = final_messages.length;
 	total_user_messages += user_final_messages.length;
@@ -219,17 +230,33 @@ function show_messages_on_view()
 
 function put_message_to_view(message)
 {	
+	var row = Ti.UI.createTableViewRow({
+		className: 'youandirow',
+		/*           
+            backgroundGradient : {
+                type          : 'linear',
+                colors        : [ "#fff", '#eeeeed' ],
+                startPoint    : { x : 0, y : 0 },
+                endPoint      : { x : 0, y : 70 },
+                backFillStart : false
+            }
+            */
+           backgroundColor:'transparent'
+        });
 	if(message['emotion'] == 0)
 	{
 		var namelbl = Ti.UI.createLabel({
 			color:Ti.App.Properties.getString('text_color'),
+			backgroundColor: 'transparent',
 		  text: message['txt'],  
-		  borderRadius: 8,
-		  borderWidth: 0,
-		  backgroundPaddingLeft: 5,
+		  //borderRadius: 8,
+		  //borderWidth: 0,
+		  //backgroundPaddingLeft: 5,
 		  textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
-		  top: top_global,
-		  height: 5
+		  //horizontalWrap: true,
+		  //top: top_global,
+		  width: 'auto',
+		  height: 'auto'
 		});
 		if (message['from_me'])
 		{
@@ -238,20 +265,22 @@ function put_message_to_view(message)
 		else
 		{
 			namelbl.right=5;
-		}
-		message_view.add(namelbl);
+		}		
 		top_global = top_global + LABEL_LENGTH;
-		//textArea.top += LABEL_LENGTH;
-		//button.top += LABEL_LENGTH;
-		message_view.height = message_view.height + LABEL_LENGTH;		
+		row.add(namelbl);
+		//message_view.add(namelbl);
+		//message_view.height = message_view.height + LABEL_LENGTH;		
 	}
 	else
 	{			
 		var image1 = Ti.UI.createImageView({		  
-		  top: top_global,		  
+		  //top: top_global,		  
 		  height: 60,
 		  width:60
+		  //height:'auto',
+		  //width:'auto'
 		});
+		
 		if (message['from_me'])
 		{
 			image1.left=5;
@@ -272,7 +301,7 @@ function put_message_to_view(message)
 			image1.image='miss_u.gif';			
 		}
 		else if(message['emotion'] == 3)
-			image1.image='sorry.gif';			
+			image1.image='fing_sorry.gif';			
 		else if(message['emotion'] == 4)
 			image1.image='mad.gif';			
 			
@@ -282,6 +311,9 @@ function put_message_to_view(message)
 		//textArea.top += 60;
 		//button.top += 60;		
 		message_view.height = message_view.height + 60;
-		message_view.add(image1);		
+		//message_view.add(image1);
+		row.add(image1);		
 	}	
+	
+	table.insertRowAfter(table.data[0].rows.length-1, row);
 }
