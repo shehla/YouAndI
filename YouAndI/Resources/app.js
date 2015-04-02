@@ -4,7 +4,8 @@
 
 
 Ti.App.Properties.setString('back_color','#AFEEEE');
-Ti.App.Properties.setString('text_color', '#fff');
+Ti.App.Properties.setString('text_color', 'black');
+Ti.App.Properties.getString('Num_records', '4');
 clear_fields();
 
 Ti.App.num_msgs = 0;
@@ -199,8 +200,9 @@ function render_app()
 	tabGroup.open(); 	
 	tabGroup.addEventListener('focus',function(e){		
 	    if(e.index == 1 && Ti.App.Properties.getString('controls_rendered')=='0'){
-	    	Ti.include('love.js');	    	
-			refresh_messages_screen();
+	    	Ti.App.win1.fireEvent('focus');
+	    	//Ti.include('love.js');	    	
+			//refresh_messages_screen();
 			tabGroup.setActiveTab(1);	 
 	    }
 	});

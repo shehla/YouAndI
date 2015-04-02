@@ -1,8 +1,9 @@
+Ti.include('notifications.js');
 user_msgs_retrieved = false;
 lover_msgs_retrieved = false;
-final_messages = [];
 user_final_messages = [];
 lover_final_messages = [];
+NUM_RECORDS = 4;
 
 function if_msgs_fetched(ui_cb_after_merging_messages_for_display)
 {
@@ -19,11 +20,9 @@ function init_structs()
 {
 	user_msgs_retrieved = false;
 	lover_msgs_retrieved = false;
-	final_messages = [];
 	user_final_messages = [];
 	lover_final_messages = [];	
-	blurCalled = false;
-	var textArea = null;
+	blurCalled = false;	
 	var button = null;
 }
 
@@ -32,7 +31,8 @@ function add_remaining_messages(cur_ptr, remaining_messages)
 	for(x=cur_ptr;x<remaining_messages.length;x++)
 	{
 		Ti.API.info(' adding LOVER EMOTION inn ----->'+JSON.stringify(remaining_messages[x]));
-		final_messages.push(remaining_messages[x]);
+		//final_messages.push(remaining_messages[x]);
+		put_message_in_global(remaining_messages[x]);
 	}	
 }
 
@@ -49,6 +49,7 @@ function get_last_msg_timestamp(message_list, total_messages)
 
 function merge_messages()
 {
+	
 	Ti.API.info('==================================\nIn merge message --->');
 	last_timestsamp = get_last_msg_timestamp(user_final_messages, total_user_messages);
 	if (last_timestsamp=='-1')
@@ -79,13 +80,15 @@ function merge_messages()
 		}		
 		if(lover_final_messages[lover_ptr]['timestamp'] < user_final_messages[user_ptr]['timestamp'])
 		{
-			final_messages.push(lover_final_messages[lover_ptr]);
+			//final_messages.push(lover_final_messages[lover_ptr]);
+			put_message_in_global(lover_final_messages[lover_ptr]);
 			Ti.API.info(' adding LOVER EMOTION ----->'+JSON.stringify(lover_final_messages[user_ptr]));			
 			lover_ptr += 1;
 		}
 		else
 		{
-			final_messages.push(user_final_messages[user_ptr]);
+			//final_messages.push(user_final_messages[user_ptr]);
+			put_message_in_global(user_final_messages[user_ptr]);
 			//if (user_final_messages[user_ptr]['emotion'])
 			Ti.API.info(' adding EMOTION ----->'+JSON.stringify(user_final_messages[user_ptr]));
 			user_ptr += 1;						
@@ -141,7 +144,8 @@ function fetch_messages(phone, last_timestamp, callback, ui_cb_after_merging_mes
 				},	
 				"RangeKeyCondition": {
 					"AttributeValueList":[{"N":last_timestamp}],"ComparisonOperator":"GT"
-				}			
+				},
+				"Limit": NUM_RECORDS		
 			} //Required
 		};	
 		Ti.API.info(JSON.stringify(params));
@@ -157,8 +161,9 @@ function fetch_messages(phone, last_timestamp, callback, ui_cb_after_merging_mes
 	});				
 }	
 
-function add_message(milliseconds, _post_message_send_notification_and_update_views)
+function add_message(emotion_type, msg_text)
 {
+	var milliseconds = (new Date).getTime();
 	cur_time = milliseconds.toString();
 	var params = {
 			'RequestJSON' : {
@@ -166,12 +171,15 @@ function add_message(milliseconds, _post_message_send_notification_and_update_vi
 				"Item" : {
 					"from" : { "S" : Ti.App.Properties.getString('phone')}, //Required					
 					'to' : { 'S' : Ti.App.Properties.getString('lover_phone')},
-					'timestamp': { 'N' : cur_time},
-					'message': { 'S' : textArea.value}						
+					'timestamp': { 'N' : cur_time},					
+					'emotion': { 'N' : emotion_type.toString()}										
 				}
 			} //Required
-		};
-		
+		};	
+	if (emotion_type == 0)
+	{
+		params['RequestJSON']["Item"]['message'] = 	{'S': msg_text};
+	}
 			
 	Ti.API.info('add_message: '+JSON.stringify(params));
 	
@@ -181,15 +189,20 @@ function add_message(milliseconds, _post_message_send_notification_and_update_vi
 			
 		function(data, response) {
 		Ti.API.info(JSON.stringify(response));
-		final_messages.push({'from': Ti.App.Properties.getString('phone'),
+		message_new = {'from': Ti.App.Properties.getString('phone'),
 			'to': Ti.App.Properties.getString('lover_phone'),
-			'emotion': 0,
-			'txt':textArea.value,
+			'emotion': emotion_type.toString(),
+			'txt':msg_text,
 			'from_me':true,
 			'timestamp': cur_time
-		});
-		Ti.App.global_messages = final_messages;		
-		_post_message_send_notification_and_update_views();
+		};
+		put_message_in_global(message_new);		
+		Ti.App.current_msg = msg_text;
+		Ti.App.current_full_msg = message_new;			
+		//_post_message_send_notification_and_update_views();
+		Ti.App.win1.fireEvent('focus');
+		send_notification(emotion_type, Ti.App.current_msg);
+		Ti.App.Properties.setString('last_user_msg_timestamp', message_new['timestamp']);		
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));
 		Ti.API.info(JSON.stringify(error));

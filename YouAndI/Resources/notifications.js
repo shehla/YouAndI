@@ -22,3 +22,15 @@ function send_notification(emotion_type, cur_message)
 	 // Send the request.
 	 client.send();
 }
+
+function get_global_messages()
+{
+	return eval(Ti.App.global_messages);	
+}
+
+function put_message_in_global(message)
+{	
+	this_msgs = eval(Ti.App.global_messages);
+	this_msgs.push(message);
+	Ti.App.global_messages = this_msgs;
+}

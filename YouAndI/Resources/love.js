@@ -7,6 +7,9 @@ var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 LABEL_LENGTH = 35;
 KEYBOARD_HEIGHT = 200;
+MSG_PADDING = 10;
+USER_BG_COLOR = '#E5FFCC';
+LOVER_BG_COLOR = '#CCE5FF';
 
 // bug in titanium https://jira.appcelerator.org/browse/TIMOB-16496
 blurCalled = false;
@@ -15,31 +18,65 @@ var button;
 var scrollView;
 var message_view;
 var text_btn_view;
-var table = Ti.UI.createTableView({
-        separatorColor : 'transparent',
-        top            : 40,
-        backgroundColor:'transparent'
-        //height         : '80%'
-});
+var table;
+// this is used from emotion.js when add_message is called.
+// That is why I have to declare it globally.
+var textArea;
 
-table.appendRow(Ti.UI.createTableViewRow({
-        className: 'youandirow',
-    }));
 
-//refresh_messages_screen();
+
+refresh_messages_screen();
 
 function render_UI()
 {		 
 	create_controls();
 	add_textarea_and_send_btn();
 	show_messages_on_view();
-	scrollView.setContentOffset({x:0,y:message_view.getHeight()-450},{animated:false});		
-	scrollView.setVisible(true);
-	Ti.App.Properties.setString('controls_rendered','1');	
+	//scrollView.setContentOffset({x:0,y:message_view.getHeight()-450},{animated:false});		
+	//scrollView.setVisible(true);	
+	table.setContentOffset({animated:false});	
+	Ti.App.Properties.setString('controls_rendered','1');
+	table.setVisible(true);	
 }
 
 function create_controls()
 {
+	
+	table = Ti.UI.createTableView({
+        separatorColor : 'transparent',
+        top            : 0,
+        backgroundColor:'transparent',
+        height         : 410,
+        visible: false
+	});
+
+	load_earlier_button = Ti.UI.createButton({
+		title: 'Load earlier messages..',
+		color:'black',
+		borderRadius: 10,
+		backgroundColor: 'white',
+		top: 5,
+		bubbleParent: false,
+		//left: 0,	
+		width: '95%',
+		height: 25
+	});
+		/*
+	table.appendRow(Ti.UI.createTableViewRow({
+        className: 'youandirow',
+        height: 0
+    }));
+    */
+    var row = Ti.UI.createTableViewRow({
+		className: 'youandirow',
+		selectionStyle: 'none',
+           width: 'auto',
+           height: 'auto',
+           backgroundColor:'transparent'
+        });
+        row.add(load_earlier_button);
+    table.appendRow(row);
+	
 	scrollView = Ti.UI.createScrollView({
 	  contentWidth: 'auto',
 	  contentHeight: 'auto',
@@ -71,19 +108,22 @@ function create_controls()
       	textArea.blur();    	
 	});	
 	
-	scrollView.add(message_view);	
-	Ti.App.win1.add(scrollView);	
+	//scrollView.add(message_view);	
+	//Ti.App.win1.add(scrollView);	
+	Ti.App.win1.add(table);
 	Ti.App.win1.add(text_btn_view);
-	Ti.App.win1.addEventListener('focus', function(e){				
+	Ti.App.win1.addEventListener('focus', function(e){			
 			this_msgs = eval(Ti.App.global_messages);
+			//alert('Ti.App.num_msgs'+Ti.App.num_msgs+' this_msgs.length:'+this_msgs.length);
 			if(Ti.App.num_msgs < this_msgs.length)
 			{
 				for(x=Ti.App.num_msgs;x<this_msgs.length;x++)
 				{
-					put_message_to_view(this_msgs[x]);
+					put_message_to_view(this_msgs[x], table.data[0].rows.length-1);
 				}
 				Ti.App.num_msgs = this_msgs.length;
 			}
+			post_message_send_notification_and_update_views();
 	});			
 }
 
@@ -186,11 +226,10 @@ function add_textarea_and_send_btn()
 	button.addEventListener('click', function(e){				
 		// Did user enter name and phone?
 		if (textArea.value != '')
-		{	
-			var milliseconds = (new Date).getTime();
-			Ti.API.info('User: '+Ti.App.Properties.getString('phone')+' Sending message: '+textArea.value+' to lover->'+Ti.App.Properties.getString('lover_phone')+' at time->'+milliseconds);
+		{				
+			Ti.API.info('User: '+Ti.App.Properties.getString('phone')+' Sending message: '+textArea.value+' to lover->'+Ti.App.Properties.getString('lover_phone'));
 			
-			add_message(milliseconds, post_message_send_notification_and_update_views);
+			add_message(0, textArea.value);
 		}
 		else
 		{
@@ -199,39 +238,38 @@ function add_textarea_and_send_btn()
 	});
 }
 
+
 function post_message_send_notification_and_update_views()
 {
-	send_notification(0, textArea.value);
-	put_message_to_view(final_messages[final_messages.length-1]);
-	scrollView.scrollToBottom();	
-	Ti.App.Properties.setString('last_user_msg_timestamp', final_messages[final_messages.length-1]['timestamp']);
+	scrollView.scrollToBottom();		
 	textArea.blur();
 	textArea.value ='';	
-	final_messages = [];
 }
 //////////////////////////////////////////////////////
 
 function show_messages_on_view()
 {
-	for(i=0;i<final_messages.length;i++)
+	//alert('coming to show_msgs user:'+user_final_messages.length+' lover:'+lover_final_messages.length+' final:'+final_messages.length+' table:'+table.data[0].rows.length);
+	global_msgs = get_global_messages();	
+	for(i=0;i<global_msgs.length;i++)
 	{
 		
-		put_message_to_view(final_messages[i]);
-	}
-	message_view.add(table);	
-	Ti.App.global_messages = final_messages;
-	Ti.App.num_msgs = final_messages.length;
+		put_message_to_view(global_msgs[i], table.data[0].rows.length-1);
+	}		
+	Ti.App.num_msgs = global_msgs.length;
 	total_user_messages += user_final_messages.length;
 	total_lover_messages += lover_final_messages.length;
-	scrollView.scrollToBottom();
-	final_messages = [];
+	//scrollView.scrollToBottom();	
+	//final_messages = [];
+	//alert('coming to show_msgs user:'+user_final_messages.length+' lover:'+lover_final_messages.length+' final:'+final_messages.length+' table:'+table.data[0].rows.length);
 }
 
 
-function put_message_to_view(message)
+function put_message_to_view(message, index_to_add)
 {	
 	var row = Ti.UI.createTableViewRow({
 		className: 'youandirow',
+		selectionStyle: 'none',
 		/*           
             backgroundGradient : {
                 type          : 'linear',
@@ -241,35 +279,55 @@ function put_message_to_view(message)
                 backFillStart : false
             }
             */
+           width: 'auto',
+           height: 'auto',
            backgroundColor:'transparent'
-        });
+        });     
+     
 	if(message['emotion'] == 0)
-	{
+	{		
+		var msg_view = Ti.UI.createLabel({
+			backgroundColor: 'white',
+			height: 'auto',
+			borderRadius: 8,			
+			width: 'auto',
+			top: 10,
+		});
 		var namelbl = Ti.UI.createLabel({
 			color:Ti.App.Properties.getString('text_color'),
 			backgroundColor: 'transparent',
 		  text: message['txt'],  
 		  //borderRadius: 8,
-		  //borderWidth: 0,
-		  //backgroundPaddingLeft: 5,
-		  textAlign: Ti.UI.TEXT_ALIGNMENT_LEFT,
+		  //borderWidth: 0,		  		  
+		  //backgroundPaddingTop: 5,		  
+		  //backgroundPaddingBottom: 5,		  
 		  //horizontalWrap: true,
-		  //top: top_global,
+		  left: MSG_PADDING,
+		  right: MSG_PADDING,
+		  top: MSG_PADDING,
+		  bottom: MSG_PADDING,
 		  width: 'auto',
+		  //width: 250,
 		  height: 'auto'
 		});
+		
 		if (message['from_me'])
 		{
-			namelbl.left=5;
+			msg_view.right=5;
+			msg_view.backgroundColor = USER_BG_COLOR;
 		}
 		else
 		{
-			namelbl.right=5;
+			msg_view.left=5;
+			msg_view.backgroundColor = LOVER_BG_COLOR;
 		}		
-		top_global = top_global + LABEL_LENGTH;
-		row.add(namelbl);
+		
+		//top_global = top_global + LABEL_LENGTH;		
+		msg_view.add(namelbl);
+		row.add(msg_view);
 		//message_view.add(namelbl);
-		//message_view.height = message_view.height + LABEL_LENGTH;		
+		//message_view.height = message_view.height + LABEL_LENGTH;
+				
 	}
 	else
 	{			
@@ -283,11 +341,11 @@ function put_message_to_view(message)
 		
 		if (message['from_me'])
 		{
-			image1.left=5;
+			image1.right=5;
 		}
 		else
 		{
-			image1.right=5;
+			image1.left=5;
 		}
 		
 		if(message['emotion'] == 1)
@@ -305,15 +363,16 @@ function put_message_to_view(message)
 		else if(message['emotion'] == 4)
 			image1.image='mad.gif';			
 			
-		
-		
 		top_global = top_global + 60;
 		//textArea.top += 60;
 		//button.top += 60;		
-		message_view.height = message_view.height + 60;
+		//message_view.height = message_view.height + 60;
 		//message_view.add(image1);
 		row.add(image1);		
 	}	
+	cur_rows = table.data[0].rows.length-1;
 	
-	table.insertRowAfter(table.data[0].rows.length-1, row);
+	//table.insertRowAfter(0, row);
+	table.insertRowAfter(index_to_add, row);
+	table.scrollToIndex(table.data[0].rows.length-1);
 }

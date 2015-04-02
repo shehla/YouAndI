@@ -1,4 +1,5 @@
 Ti.include('notifications.js');
+Ti.include('fetch_messages.js');
 Ti.include();
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
@@ -26,9 +27,9 @@ function createButtons()
 		height: '25%'
 	});
 	loveBtn.addEventListener('click', function(e){				
-		send_notification(1, 'love ya');		
+		//send_notification(1, 'love ya');		
 		var milliseconds = (new Date).getTime();				
-		add_emotion(milliseconds, 1);
+		add_emotion(1, 'love ya');
 	});	
 	Ti.UI.currentWindow.add(loveBtn);
 
@@ -44,9 +45,9 @@ function createButtons()
 		height: '25%'
 	});
 	missingBtn.addEventListener('click', function(e){
-		send_notification(2, 'missing you');				
+		//send_notification(2, 'missing you');				
 		var milliseconds = (new Date).getTime();					
-		add_emotion(milliseconds, 2);
+		add_emotion(2, 'missing you');
 	});	
 	Ti.UI.currentWindow.add(missingBtn);
 	
@@ -62,9 +63,9 @@ function createButtons()
 		height: '25%'
 	});
 	sorryBtn.addEventListener('click', function(e){
-		send_notification(3, 'so sorry');				
+		//send_notification(3, 'so sorry');				
 		var milliseconds = (new Date).getTime();				
-		add_emotion(milliseconds, 3);
+		add_emotion(3, 'so sorry');
 	});		
 	Ti.UI.currentWindow.add(sorryBtn);
 	
@@ -80,54 +81,16 @@ function createButtons()
 		height: '25%'
 	});
 	madBtn.addEventListener('click', function(e){
-		send_notification(4, "so mad at you");				
+		//send_notification(4, "so mad at you");				
 		var milliseconds = (new Date).getTime();				
-		add_emotion(milliseconds, 4);
+		add_emotion(4, "so mad at you");
 	});		
 	Ti.UI.currentWindow.add(madBtn);			
 } 
 
-function add_emotion(milliseconds, emotion_type)
+function add_emotion(emotion_type, msg)
 {
-	cur_time = milliseconds.toString();
-	var params = {
-			'RequestJSON' : {
-				"TableName" : 'messages',
-				"Item" : {
-					"from" : { "S" : Ti.App.Properties.getString('phone')}, //Required					
-					'to' : { 'S' : Ti.App.Properties.getString('lover_phone')},
-					'timestamp': { 'N' : cur_time},
-					'emotion': {'N': emotion_type.toString()}						
-				}
-			} //Required
-		};
-		
-			
-	Ti.API.info('add_message: '+JSON.stringify(params));
-	
-	
-		
-		AWS.DDB.putItem(params,
-			
-		function(data, response) {
-		Ti.API.info(JSON.stringify(response));
-		this_msgs = eval(Ti.App.global_messages);		
-		
-		this_msgs.push({'from': Ti.App.Properties.getString('phone'),
-			'to': Ti.App.Properties.getString('lover_phone'),
-			'emotion': emotion_type,
-			'from_me': true,
-			'timestamp': cur_time
-		});
-		//alert(JSON.stringify(Ti.App.global_messages[Ti.App.global_messages.length-1]));
-		
-		Ti.App.global_messages = this_msgs;
-		disable_Btn(emotion_type);
-  	},  function(message,error) {
-		alert('Error: '+ JSON.stringify(error));
-		Ti.API.info(JSON.stringify(error));
-
-	});	
+		add_message(emotion_type, msg);
 }
 
 function disable_Btn(emotion)
