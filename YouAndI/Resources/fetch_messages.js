@@ -55,7 +55,7 @@ function get_user_msgs(response)
 	Ti.API.info('User msgs -->' +JSON.stringify(response));
 	user_final_messages = extract_messages(response["data"]["Items"]);
 	update_user_timestamps();
-	Ti.API.info(' User -----> '+JSON.stringify(msgs)+' newest time->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));	
+	Ti.API.info(' User -----> '+JSON.stringify(user_final_messages)+' newest time->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));	
 }
 
 function mock_fetch_messages(phone, callback, ui_cb_after_merging_messages_for_display)
@@ -97,7 +97,6 @@ function fetch_messages(conversation_id, last_timestamp, ui_cb_after_merging_mes
 	AWS.DDB.query(params,
 			
 		function(data, response) {
-		//alert('Success: '+ JSON.stringify(response));
 		get_user_msgs(response);
 		if_msgs_fetched(ui_cb_after_merging_messages_for_display);		
   	},  function(message,error) {
@@ -108,6 +107,45 @@ function fetch_messages(conversation_id, last_timestamp, ui_cb_after_merging_mes
 }	
 
 function add_message(emotion_type, msg_text)
+{
+	conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
+	var url = "http://52.0.12.121/cgi-bin/add_message.cgi?&conversation_id="+conversation_id+"&from="+Ti.App.Properties.getString('phone')+"&emotion="+emotion_type+"&message="+msg_text;
+	Ti.API.info('sending notification :'+url);
+
+	 var client = Ti.Network.createHTTPClient({
+	     // function called when the response data is available
+	     onload : function(e) {	 
+	         Ti.API.info("Received text: " + this.responseText);
+	         cur_timestamp = this.responseText.replace(/^\s+|\s+$/g, '');
+				message_new = {'from': Ti.App.Properties.getString('phone'),
+					'to': Ti.App.Properties.getString('lover_phone'),
+					'emotion': emotion_type.toString(),
+					'txt':msg_text,
+					'from_me':true,
+					'timestamp': cur_timestamp
+				};
+				// update user newest timestamp		
+				put_message_in_global(message_new);					
+				//_post_message_send_notification_and_update_views();		
+				Ti.App.win1.fireEvent('focus');		
+				send_notification(emotion_type, msg_text);
+				Ti.App.Properties.setString('newest_user_msg_timestamp', message_new['timestamp']);
+				Ti.API.info('Setting newest timestamp ->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));						
+	         
+	     },
+	     // function called when an error occurs, including a timeout
+	     onerror : function(e) {	         
+	         alert('error 12:');
+	     },
+	     timeout : 5000  // in milliseconds
+	 });
+	 // Prepare the connection.
+	 client.open("GET", url);
+	 // Send the request.
+	 client.send();	
+}
+
+function add_message_OLD(emotion_type, msg_text)
 {
 	var milliseconds = (new Date).getTime();
 	cur_time = milliseconds.toString();
