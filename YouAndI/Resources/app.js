@@ -13,8 +13,8 @@ Ti.App.global_messages = [];
 //alert('user ph->'+ Ti.App.Properties.getString('last_user_msg_timestamp')+' lover ->'+ Ti.App.Properties.getString('last_lover_msg_timestamp'));
 
 Ti.App.Properties.setString('status', 4);
-Ti.App.Properties.setString('phone', '2178199492');
-Ti.App.Properties.setString('lover_phone', '2178191112');
+Ti.App.Properties.setString('phone', '2178191112');
+Ti.App.Properties.setString('lover_phone', '2178199492');
 
 var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
@@ -138,13 +138,16 @@ function final_registration_window(custom_msg)
 
 function clear_fields()
 {	
-	Ti.App.Properties.setString('last_user_msg_timestamp','0');
+	Ti.App.Properties.setString('last_user_msg_timestamp','2227778696322');	
+	Ti.App.Properties.setString('last_lover_msg_timestamp','2227778696322');
+	Ti.App.Properties.setString('newest_user_msg_timestamp','0');
+	Ti.App.Properties.setString('newest_lover_msg_timestamp','0');
 	Ti.App.Properties.setString('controls_rendered','0');
-	Ti.App.Properties.setString('last_lover_msg_timestamp','0');
 	Ti.App.Properties.removeProperty('name');
 	Ti.App.Properties.removeProperty('status');
 	Ti.App.Properties.removeProperty('phone');
 	Ti.App.Properties.removeProperty('lover_phone');
+	Ti.App.Properties.setString('new_messages','0');
 }
 
 
@@ -199,10 +202,8 @@ function render_app()
 	tabGroup.addTab(tab2);			
 	tabGroup.open(); 	
 	tabGroup.addEventListener('focus',function(e){		
-	    if(e.index == 1 && Ti.App.Properties.getString('controls_rendered')=='0'){
-	    	Ti.App.win1.fireEvent('focus');
-	    	//Ti.include('love.js');	    	
-			//refresh_messages_screen();
+	    if(e.index == 1 && Ti.App.Properties.getString('controls_rendered')=='0'){	    	
+	    	Ti.App.win1.fireEvent('focus');	    	
 			tabGroup.setActiveTab(1);	 
 	    }
 	});
@@ -251,8 +252,8 @@ else {
 // Process incoming push notifications
 function receivePush(e) {
     //alert('Received push: ' + JSON.stringify(e));
-    Ti.include('love.js');
-	refresh_messages_screen();
+    Ti.App.Properties.setString('new_messages','1');
+    Ti.App.win1.fireEvent('focus');
 	tabGroup.setActiveTab(1);
 }
 // Save the device token for subsequent API calls

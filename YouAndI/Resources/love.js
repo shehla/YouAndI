@@ -61,6 +61,9 @@ function create_controls()
 		width: '95%',
 		height: 25
 	});
+	load_earlier_button.addEventListener('click', function(e){				
+		refresh_messages_screen();		
+	});	
 		/*
 	table.appendRow(Ti.UI.createTableViewRow({
         className: 'youandirow',
@@ -112,9 +115,11 @@ function create_controls()
 	//Ti.App.win1.add(scrollView);	
 	Ti.App.win1.add(table);
 	Ti.App.win1.add(text_btn_view);
-	Ti.App.win1.addEventListener('focus', function(e){			
-			this_msgs = eval(Ti.App.global_messages);
-			//alert('Ti.App.num_msgs'+Ti.App.num_msgs+' this_msgs.length:'+this_msgs.length);
+	Ti.App.win1.addEventListener('focus', function(e){
+		new_msgs = Ti.App.Properties.getString('new_messages');
+		if(new_msgs == '0')
+		{			
+			this_msgs = eval(Ti.App.global_messages);			
 			if(Ti.App.num_msgs < this_msgs.length)
 			{
 				for(x=Ti.App.num_msgs;x<this_msgs.length;x++)
@@ -124,18 +129,23 @@ function create_controls()
 				Ti.App.num_msgs = this_msgs.length;
 			}
 			post_message_send_notification_and_update_views();
+		}
+		else{
+			// got a push notification. Fetch new msgs
+			refresh_messages_screen();
+			Ti.App.global_messages = [];
+		}
 	});			
 }
 
 function init_startup_global_vars()
 {
-	total_user_messages = 0;
-	total_lover_messages = 0;	
-	top_global = 10;
+	total_user_messages = 0;	
 }
 
 function refresh_messages_screen()
 {
+	Ti.App.global_messages = [];
 	Ti.API.info('------------------------\n in refresh_messages_screen');
 	init_structs();
 	if (Ti.App.Properties.getString('controls_rendered')=='1')
@@ -154,15 +164,32 @@ function refresh_messages_screen()
 	}		
 	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
 	{
-		last_user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
-		last_lover_timestamp = Ti.App.Properties.getString('last_lover_msg_timestamp');
-		
-		fetch_messages(Ti.App.Properties.getString('phone'), last_user_timestamp, get_user_msgs, callback_for_UI);
-		fetch_messages(Ti.App.Properties.getString('lover_phone'), last_lover_timestamp, get_lover_msgs, callback_for_UI);
+		get_messages_from_store(callback_for_UI);
 		//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, render_UI);
 		//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, render_UI);
 	}
 		
+}
+
+function get_messages_from_store(callback_for_UI)
+{
+	
+	new_msgs = Ti.App.Properties.getString('new_messages');
+	if(new_msgs == '0')
+	{ 
+		query_type = 'LT';
+		user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
+	}
+	else
+	{		
+		query_type = 'GT';
+		user_timestamp = Ti.App.Properties.getString('newest_user_msg_timestamp');
+	}
+	
+	conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
+	Ti.API.info('Passing timestamp ----->'+user_timestamp);
+	fetch_messages(conversation_id, user_timestamp, callback_for_UI, query_type);
+	//fetch_messages(Ti.App.Properties.getString('lover_phone'), lover_timestamp, get_lover_msgs, callback_for_UI, query_type);	
 }
 // sort and merge messages to form recent messages.
 
@@ -249,19 +276,24 @@ function post_message_send_notification_and_update_views()
 
 function show_messages_on_view()
 {
-	//alert('coming to show_msgs user:'+user_final_messages.length+' lover:'+lover_final_messages.length+' final:'+final_messages.length+' table:'+table.data[0].rows.length);
+	Ti.API.info('coming to show_messages_on_view');
+	var index_to_add;
+	new_msgs = Ti.App.Properties.getString('new_messages');
+	if(new_msgs=='1')
+		index_to_add = table.data[0].rows.length-1;
+	else
+		index_to_add = 0;
 	global_msgs = get_global_messages();	
-	for(i=0;i<global_msgs.length;i++)
+	for(i=global_msgs.length-1;i>=0;i--)
 	{
-		
-		put_message_to_view(global_msgs[i], table.data[0].rows.length-1);
+		put_message_to_view(global_msgs[i], index_to_add);
+		index_to_add = index_to_add + 1;
 	}		
 	Ti.App.num_msgs = global_msgs.length;
 	total_user_messages += user_final_messages.length;
-	total_lover_messages += lover_final_messages.length;
-	//scrollView.scrollToBottom();	
-	//final_messages = [];
-	//alert('coming to show_msgs user:'+user_final_messages.length+' lover:'+lover_final_messages.length+' final:'+final_messages.length+' table:'+table.data[0].rows.length);
+	// now set the new_messages switch false
+	Ti.App.Properties.setString('new_messages','0');
+	
 }
 
 
@@ -283,7 +315,7 @@ function put_message_to_view(message, index_to_add)
            height: 'auto',
            backgroundColor:'transparent'
         });     
-     
+    
 	if(message['emotion'] == 0)
 	{		
 		var msg_view = Ti.UI.createLabel({
@@ -311,18 +343,18 @@ function put_message_to_view(message, index_to_add)
 		  height: 'auto'
 		});
 		
-		if (message['from_me'])
-		{
+		if (message['from_me'] == true)
+		{			
 			msg_view.right=5;
 			msg_view.backgroundColor = USER_BG_COLOR;
 		}
 		else
 		{
+	
 			msg_view.left=5;
 			msg_view.backgroundColor = LOVER_BG_COLOR;
 		}		
-		
-		//top_global = top_global + LABEL_LENGTH;		
+				
 		msg_view.add(namelbl);
 		row.add(msg_view);
 		//message_view.add(namelbl);
@@ -331,8 +363,7 @@ function put_message_to_view(message, index_to_add)
 	}
 	else
 	{			
-		var image1 = Ti.UI.createImageView({		  
-		  //top: top_global,		  
+		var image1 = Ti.UI.createImageView({		  		  
 		  height: 60,
 		  width:60
 		  //height:'auto',
@@ -363,16 +394,10 @@ function put_message_to_view(message, index_to_add)
 		else if(message['emotion'] == 4)
 			image1.image='mad.gif';			
 			
-		top_global = top_global + 60;
-		//textArea.top += 60;
-		//button.top += 60;		
-		//message_view.height = message_view.height + 60;
-		//message_view.add(image1);
 		row.add(image1);		
 	}	
 	cur_rows = table.data[0].rows.length-1;
 	
-	//table.insertRowAfter(0, row);
 	table.insertRowAfter(index_to_add, row);
 	table.scrollToIndex(table.data[0].rows.length-1);
 }
