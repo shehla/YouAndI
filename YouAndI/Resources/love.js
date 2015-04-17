@@ -6,7 +6,7 @@ var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 LABEL_LENGTH = 35;
-KEYBOARD_HEIGHT = 200;
+KEYBOARD_HEIGHT = 170;
 MSG_PADDING = 10;
 USER_BG_COLOR = '#E5FFCC';
 LOVER_BG_COLOR = '#CCE5FF';
@@ -107,9 +107,11 @@ function create_controls()
 	  height: 7,	  
 	  //width: 1000
 	});
-	message_view.addEventListener('click',function(e){    	
-      	textArea.blur();    	
-	});	
+		
+	table.addEventListener('click', function(e)
+	{
+		textArea.blur();
+	});
 	
 	//scrollView.add(message_view);	
 	//Ti.App.win1.add(scrollView);	
@@ -399,5 +401,6 @@ function put_message_to_view(message, index_to_add)
 	cur_rows = table.data[0].rows.length-1;
 	
 	table.insertRowAfter(index_to_add, row);
-	table.scrollToIndex(table.data[0].rows.length-1);
+	//table.scrollToIndex(table.data[0].rows.length-1);
+	table.scrollToIndex(index_to_add+1);
 }

@@ -145,56 +145,6 @@ function add_message(emotion_type, msg_text)
 	 client.send();	
 }
 
-function add_message_OLD(emotion_type, msg_text)
-{
-	var milliseconds = (new Date).getTime();
-	cur_time = milliseconds.toString();
-	conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
-	var params = {
-			'RequestJSON' : {
-				"TableName" : 'messages',
-				"Item" : {
-					'conversation_id': {"S": conversation_id},
-					"from" : { "S" : Ti.App.Properties.getString('phone')}, //Required					
-					'timestamp': { 'N' : cur_time},					
-					'emotion': { 'N' : emotion_type.toString()}										
-				}
-			} //Required
-		};	
-	if (emotion_type == 0)
-	{
-		params['RequestJSON']["Item"]['message'] = 	{'S': msg_text};
-	}
-			
-	Ti.API.info('add_message: '+JSON.stringify(params));
-	
-	
-		
-		AWS.DDB.putItem(params,
-			
-		function(data, response) {
-		Ti.API.info(JSON.stringify(response));
-		message_new = {'from': Ti.App.Properties.getString('phone'),
-			'to': Ti.App.Properties.getString('lover_phone'),
-			'emotion': emotion_type.toString(),
-			'txt':msg_text,
-			'from_me':true,
-			'timestamp': cur_time
-		};
-		// update user newest timestamp		
-		put_message_in_global(message_new);					
-		//_post_message_send_notification_and_update_views();		
-		Ti.App.win1.fireEvent('focus');		
-		send_notification(emotion_type, msg_text);
-		Ti.App.Properties.setString('newest_user_msg_timestamp', message_new['timestamp']);
-		Ti.API.info('Setting newest timestamp ->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));		
-  	},  function(message,error) {
-		alert('Error: '+ JSON.stringify(error));
-		Ti.API.info(JSON.stringify(error));
-
-	});	
-}
-
 
 function extract_messages(msg_response)
 {

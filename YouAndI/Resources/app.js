@@ -44,8 +44,6 @@ if (Ti.App.Properties.getString('status') == 1)
 	settings_win = 'add_lover.js';
 	render_tabs();
 	render_app();		
-
-	//fetch_status();
 }	
 else if(Ti.App.Properties.getString('status') == 2 || Ti.App.Properties.getString('status') == 3)
 {	
@@ -203,11 +201,22 @@ function render_app()
 	tabGroup.open(); 	
 	tabGroup.addEventListener('focus',function(e){		
 	    if(e.index == 1 && Ti.App.Properties.getString('controls_rendered')=='0'){	    	
-	    	Ti.App.win1.fireEvent('focus');	    	
-			tabGroup.setActiveTab(1);	 
+	    	reload_loves_page();	 
 	    }
 	});
 }
+function reload_loves_page()
+{
+	Ti.App.win1.fireEvent('focus');	    	
+	tabGroup.setActiveTab(1);
+}
+
+Ti.App.addEventListener('paused',function() {
+	Ti.App.Properties.setString('new_messages','1');
+	reload_loves_page();
+    Ti.API.info("save active tab: " + tabGroup.activeTab);
+    Ti.App.Properties.setInt('activeTab',tabGroup.activeTab);
+});
 //////////////////////////////////////////////////////////////////////////////////////////
 var deviceToken = null;
 // Check if the device is running iOS 8 or later
