@@ -1,32 +1,17 @@
 Ti.include('notifications.js');
-user_msgs_retrieved = false;
-lover_msgs_retrieved = false;
-user_final_messages = [];
-lover_final_messages = [];
+fetched_messages = [];
 NUM_RECORDS = 4;
-
-function if_msgs_fetched(ui_cb_after_merging_messages_for_display)
-{
-	user_msgs_retrieved = false;
-	lover_msgs_retrieved = false;		
-	ui_cb_after_merging_messages_for_display();				
-}
 
 function init_structs()
 {
-	user_msgs_retrieved = false;
-	lover_msgs_retrieved = false;
-	user_final_messages = [];
-	lover_final_messages = [];	
-	blurCalled = false;	
-	var button = null;
+	fetched_messages = [];		
 }
 
 function get_last_msg_timestamp(message_list, total_messages)
 {
 	if (message_list.length > 0)
 		return message_list[message_list.length-1]['timestamp'];
-	else return '-1';	
+	else return 0;	
 }
 
 
@@ -36,26 +21,27 @@ function get_newest_msg_timestamp(message_list, total_messages)
 	if (message_list.length > 0)
 		return message_list[0]['timestamp'];		
 	else
-		return '-1'; 	
+		return 0; 	
 }
 
 function update_user_timestamps()
 {
-	last_timestsamp_user = get_last_msg_timestamp(user_final_messages);	
-	if(last_timestsamp_user!='-1')
+	last_timestsamp_user = get_last_msg_timestamp(fetched_messages);	
+	// update timestamp only if there are new msgs recieved
+	if(last_timestsamp_user != 0)
 		Ti.App.Properties.setString('last_user_msg_timestamp', last_timestsamp_user);
-	newest_timestsamp_user = get_newest_msg_timestamp(user_final_messages);
-	if(newest_timestsamp_user!='-1')
+	newest_timestsamp_user = get_newest_msg_timestamp(fetched_messages);
+	// update timestamp only if there are new msgs recieved
+	if(newest_timestsamp_user != 0)
 		Ti.App.Properties.setString('newest_user_msg_timestamp', newest_timestsamp_user);		
 }
 
 function get_user_msgs(response)
 {
-	user_msgs_retrieved = true;
 	Ti.API.info('User msgs -->' +JSON.stringify(response));
-	user_final_messages = extract_messages(response["data"]["Items"]);
+	fetched_messages = extract_messages(response["data"]["Items"]);
 	update_user_timestamps();
-	Ti.API.info(' User -----> '+JSON.stringify(user_final_messages)+' newest time->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));	
+	Ti.API.info(' User -----> '+JSON.stringify(fetched_messages)+' newest time->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));	
 }
 
 function mock_fetch_messages(phone, callback, ui_cb_after_merging_messages_for_display)
@@ -98,7 +84,7 @@ function fetch_messages(conversation_id, last_timestamp, ui_cb_after_merging_mes
 			
 		function(data, response) {
 		get_user_msgs(response);
-		if_msgs_fetched(ui_cb_after_merging_messages_for_display);		
+		ui_cb_after_merging_messages_for_display();		
   	},  function(message,error) {
 		alert('Error: '+ JSON.stringify(error));
 		Ti.API.info(JSON.stringify(error));
@@ -127,8 +113,9 @@ function add_message(emotion_type, msg_text)
 				// update user newest timestamp		
 				put_message_in_global(message_new);					
 				//_post_message_send_notification_and_update_views();		
-				Ti.App.win1.fireEvent('focus');		
-				send_notification(emotion_type, msg_text);
+				Ti.App.win1.fireEvent('focus');
+				// Why do we have it here??		
+				//send_notification(emotion_type, msg_text);
 				Ti.App.Properties.setString('newest_user_msg_timestamp', message_new['timestamp']);
 				Ti.API.info('Setting newest timestamp ->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));						
 	         

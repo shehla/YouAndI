@@ -64,12 +64,6 @@ function create_controls()
 	load_earlier_button.addEventListener('click', function(e){				
 		refresh_messages_screen();		
 	});	
-		/*
-	table.appendRow(Ti.UI.createTableViewRow({
-        className: 'youandirow',
-        height: 0
-    }));
-    */
     var row = Ti.UI.createTableViewRow({
 		className: 'youandirow',
 		selectionStyle: 'none',
@@ -292,7 +286,7 @@ function show_messages_on_view()
 		index_to_add = index_to_add + 1;
 	}		
 	Ti.App.num_msgs = global_msgs.length;
-	total_user_messages += user_final_messages.length;
+	total_user_messages += fetched_messages.length;
 	// now set the new_messages switch false
 	Ti.App.Properties.setString('new_messages','0');
 	

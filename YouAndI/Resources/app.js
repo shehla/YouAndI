@@ -47,15 +47,8 @@ if (Ti.App.Properties.getString('status') == 1)
 }	
 else if(Ti.App.Properties.getString('status') == 2 || Ti.App.Properties.getString('status') == 3)
 {	
-	//final_registration_window('In status 2 '+Ti.App.Properties.getString("phone")+ ' waiting for '+Ti.App.Properties.getString("lover_phone")+' to register/accept.');
 	fetch_status();		
 }
-/*
-else if()
-{	
-	final_registration_window('In status 3 '+Ti.App.Properties.getString("phone")+ ' sent request to ->'+Ti.App.Properties.getString("lover_phone"));
-}
-*/
 else if(Ti.App.Properties.getString('status') == 4)
 {
 	final_registration_window('Bingo .. you:'+Ti.App.Properties.getString("phone")+ ' and ->'+Ti.App.Properties.getString("lover_phone")+ ' are in love :D');
@@ -129,8 +122,6 @@ function final_registration_window(custom_msg)
 	});	
 	add_lover_win.add(custom_label);
 	current_window = add_lover_win;
-	//tab2.add(add_lover_win);
-	//tab2.open(add_lover_win);
 	render_app();		
 } 
 
@@ -309,12 +300,3 @@ function unsubscribeToChannel () {
         }
     });
 }
- 
-//subscribeToChannel();
-
-//var subscribe = Ti.UI.createButton({title:'Subscribe',top:100});
-//subscribe.addEventListener('click', subscribeToChannel);
-//Ti.UI.currentWindow.add(subscribe);
-//var unsubscribe = Ti.UI.createButton({title:'Unsubscribe', top:300});
-//unsubscribe.addEventListener('click', unsubscribeToChannel);
-//Ti.UI.currentWindow.add(unsubscribe);
