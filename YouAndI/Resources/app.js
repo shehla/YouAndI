@@ -4,6 +4,7 @@
 
 
 Ti.App.Properties.setString('back_color','#AFEEEE');
+Ti.App.Properties.setString('not_sent_color','#DFEEEE');
 Ti.App.Properties.setString('text_color', 'black');
 Ti.App.Properties.getString('Num_records', '4');
 clear_fields();
@@ -127,10 +128,10 @@ function final_registration_window(custom_msg)
 
 function clear_fields()
 {	
-	Ti.App.Properties.setString('last_user_msg_timestamp','2227778696322');	
-	Ti.App.Properties.setString('last_lover_msg_timestamp','2227778696322');
-	Ti.App.Properties.setString('newest_user_msg_timestamp','0');
-	Ti.App.Properties.setString('newest_lover_msg_timestamp','0');
+	Ti.App.Properties.setString('last_user_msg_timestamp',2227778696322);	
+	Ti.App.Properties.setString('last_lover_msg_timestamp',2227778696322);
+	Ti.App.Properties.setString('newest_user_msg_timestamp',0);
+	Ti.App.Properties.setString('newest_lover_msg_timestamp',0);
 	Ti.App.Properties.setString('controls_rendered','0');
 	Ti.App.Properties.removeProperty('name');
 	Ti.App.Properties.removeProperty('status');
@@ -251,7 +252,6 @@ else {
 }
 // Process incoming push notifications
 function receivePush(e) {
-    //alert('Received push: ' + JSON.stringify(e));
     Ti.App.Properties.setString('new_messages','1');
     Ti.App.win1.fireEvent('focus');
 	tabGroup.setActiveTab(1);

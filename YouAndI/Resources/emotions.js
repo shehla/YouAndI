@@ -88,9 +88,13 @@ function createButtons()
 	Ti.UI.currentWindow.add(madBtn);			
 } 
 
+function do_nothing()
+{
+}
+
 function add_emotion(emotion_type, msg)
 {
-		add_message(emotion_type, msg);
+		add_message(emotion_type, msg, do_nothing);
 }
 
 function disable_Btn(emotion)
