@@ -2,6 +2,7 @@ Ti.include('notifications.js');
 Ti.include('fetch_messages.js');
 Ti.include();
 var AWS = require("ti.aws");
+
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
@@ -88,13 +89,23 @@ function createButtons()
 	Ti.UI.currentWindow.add(madBtn);			
 } 
 
-function do_nothing()
+function update_timestamp_new_msg(cur_timestamp)
 {
+	table_msgs_rows = get_table_msgs_rows();
+	for(x=0;x<table_msgs_rows.length;x++)
+	{
+		if(table_msgs_rows[x]['timestamp'] == '2227778696322')
+		{
+			table_msgs_rows[x]['timestamp'] = cur_timestamp;
+		}
+			
+	}
+	Ti.App.table_msgs_rows = table_msgs_rows;
 }
 
 function add_emotion(emotion_type, msg)
 {
-		add_message(emotion_type, msg, do_nothing);
+		add_message(emotion_type, msg, update_timestamp_new_msg);
 }
 
 function disable_Btn(emotion)

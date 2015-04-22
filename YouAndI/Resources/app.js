@@ -9,8 +9,8 @@ Ti.App.Properties.setString('text_color', 'black');
 Ti.App.Properties.getString('Num_records', '4');
 clear_fields();
 
-Ti.App.num_msgs = 0;
 Ti.App.global_messages = [];
+Ti.App.table_msgs_rows = [];
 //alert('user ph->'+ Ti.App.Properties.getString('last_user_msg_timestamp')+' lover ->'+ Ti.App.Properties.getString('last_lover_msg_timestamp'));
 
 Ti.App.Properties.setString('status', 4);

@@ -1,4 +1,7 @@
 ///////////////////////////////////////////
+Array.prototype.insert = function (index, item) {
+  this.splice(index, 0, item);
+};
 
 function get_conversation_id(phone1, phone2)
 {
@@ -31,6 +34,18 @@ function send_notification(emotion_type, cur_message)
 	 client.send();
 }
 
+function get_table_msgs_rows()
+{
+	return eval(Ti.App.table_msgs_rows);
+}
+
+function put_table_msgs_rows(idx_to_add, message)
+{	
+	table_msgs_obj = eval(Ti.App.table_msgs_rows);
+	table_msgs_obj.insert(idx_to_add, message);
+	Ti.App.table_msgs_rows = table_msgs_obj;
+}
+
 function get_global_messages()
 {
 	return eval(Ti.App.global_messages);	
@@ -40,5 +55,6 @@ function put_message_in_global(message)
 {	
 	this_msgs = eval(Ti.App.global_messages);
 	this_msgs.push(message);
+	Ti.API.info('AAAAAAAA ->'+message['txt']);
 	Ti.App.global_messages = this_msgs;
 }

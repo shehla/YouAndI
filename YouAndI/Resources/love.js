@@ -4,6 +4,8 @@ var AWS = require("ti.aws");
 var AWSfile = Ti.Filesystem.getFile('AWS_creds.json');
 var data = AWSfile.read().text;
 var AWS_json = JSON.parse(data);
+//var num_msgs = 0;
+
 AWS.authorize(AWS_json['AWSAccessKeyId'], AWS_json['AWSSecretKey']);
 KEYBOARD_HEIGHT = 170;
 MSG_PADDING = 10;
@@ -21,14 +23,16 @@ var table;
 // this is used from emotion.js when add_message is called.
 // That is why I have to declare it globally.
 var textArea;
-
+Array.prototype.insert = function (index, item) {
+  this.splice(index, 0, item);
+};
 create_screen_and_render_first_time();
 
 function render_UI()
 {		 
 	create_controls();
 	add_textarea_and_send_btn();
-	show_messages_on_view(0);
+	show_messages_on_view();
 	table.setContentOffset({animated:false});	
 	Ti.App.Properties.setString('controls_rendered','1');
 	table.setVisible(true);	
@@ -70,8 +74,13 @@ function create_controls()
            backgroundColor:'transparent'
         });
         row.add(load_earlier_button);
-    table.appendRow(row);
-    
+    table.appendRow(row);    
+    put_table_msgs_rows(0, {'from': 'load_earlier_button',
+				'to': 'load_earlier_button',				
+				'timestamp': '0',// use a big number for timestamp
+	});
+	
+    table_view_rows.push('dummy_view');
 	rowPad = Ti.UI.createTableViewRow({
 		className: 'youandirow',
 		selectionStyle: 'none',
@@ -79,7 +88,14 @@ function create_controls()
        height: 1,
        backgroundColor:'transparent'
     });		
-	table.appendRow(rowPad);    
+	table.appendRow(rowPad);
+	
+    put_table_msgs_rows(1, {'from': 'rowPad',
+				'to': 'rowPad',				
+				'timestamp': '3227778696322',// use the biggest number
+	});
+	
+	table_view_rows.push('dummy_view');	    
 	
 	text_btn_view = Ti.UI.createView({
 	  backgroundColor:'#808080',
@@ -99,70 +115,52 @@ function create_controls()
 	Ti.App.win1.add(table);
 	Ti.App.win1.add(text_btn_view);
 	Ti.App.win1.addEventListener('focus', function(e){
-		new_msgs = Ti.App.Properties.getString('new_messages');
+		new_msgs = Ti.App.Properties.getString('new_messages');		
 		if(new_msgs == '0')
 		{			
-			this_msgs = eval(Ti.App.global_messages);			
-			if(Ti.App.num_msgs < this_msgs.length)
-			{
-				for(x=Ti.App.num_msgs;x<this_msgs.length;x++)
-				{
-					put_message_to_view(this_msgs[x], table.data[0].rows.length-2);
-				}
-				Ti.App.num_msgs = this_msgs.length;
-			}
+			
+			check_and_add_msgs_to_table();
 			post_message_send_notification_and_update_views();
 		}
 		else{
 			// got a push notification. Fetch new msgs
 			refresh_messages_screen();
-			Ti.App.global_messages = [];
+			//Ti.App.global_messages = [];
 		}
 	});			
 }
 
 function create_screen_and_render_first_time()
 {
-	Ti.App.global_messages = [];
 	init_structs();
 	callback_for_UI	= render_UI;		
-	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
-	{
-		query_type = 'LT';
-		user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
-		conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
-		Ti.API.info('Passing timestamp FOR INITAL QUERY ----->'+user_timestamp);
-		fetch_messages(conversation_id, user_timestamp, callback_for_UI, query_type);		
-	}	
+	query_type = 'LT';
+	user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
+	conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
+	Ti.API.info('Passing timestamp FOR INITAL QUERY ----->'+user_timestamp);
+	fetch_messages(conversation_id, user_timestamp, callback_for_UI, query_type);			
 }
 
 function refresh_messages_screen()
 {
-	Ti.App.global_messages = [];
 	init_structs();
-	if (Ti.App.Properties.getString('phone') != null && Ti.App.Properties.getString('lover_phone') != null)
-	{		
-		new_msgs = Ti.App.Properties.getString('new_messages');
-		if(new_msgs == '0')
-		{ 
-			query_type = 'LT';
-			user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
-			callback_for_UI = post_fetch_msgs;
-		}
-		else
-		{		
-			query_type = 'GT';
-			user_timestamp = Ti.App.Properties.getString('newest_user_msg_timestamp');
-			callback_for_UI = post_fetch_new_msgs;
-		}
-		
-		conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
-		Ti.API.info('Passing timestamp ----->'+user_timestamp);
-		fetch_messages(conversation_id, user_timestamp, callback_for_UI, query_type);		
-		//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, render_UI);
-		//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, render_UI);
+	new_msgs = Ti.App.Properties.getString('new_messages');
+	if(new_msgs == '0')
+	{ 
+		query_type = 'LT';
+		user_timestamp = Ti.App.Properties.getString('last_user_msg_timestamp');
 	}
-		
+	else
+	{		
+		query_type = 'GT';
+		user_timestamp = Ti.App.Properties.getString('newest_user_msg_timestamp');			
+	}
+	callback_for_UI = show_messages_on_view;
+	conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
+	Ti.API.info('Passing timestamp ----->'+user_timestamp);
+	fetch_messages(conversation_id, user_timestamp, callback_for_UI, query_type);		
+	//mock_fetch_messages(Ti.App.Properties.getString('phone'), get_user_msgs, render_UI);
+	//mock_fetch_messages(Ti.App.Properties.getString('lover_phone'), get_lover_msgs, render_UI);		
 }
 
 // sort and merge messages to form recent messages.
@@ -225,18 +223,8 @@ function add_textarea_and_send_btn()
 		// Did user enter name and phone?
 		if (textArea.value != '')
 		{				
-			Ti.API.info('User: '+Ti.App.Properties.getString('phone')+' Sending message: '+textArea.value+' to lover->'+Ti.App.Properties.getString('lover_phone'));
-			message_new = {'from': Ti.App.Properties.getString('phone'),
-				'to': Ti.App.Properties.getString('lover_phone'),
-				'emotion': 0,
-				'txt':textArea.value,
-				'from_me':true,
-				'unconfirmed_msg': true
-			};
-			
-			put_message_in_global(message_new);							
-			Ti.App.win1.fireEvent('focus');			
-			rowPad.height = 1;
+			Ti.API.info('User: '+Ti.App.Properties.getString('phone')+' Sending message: '+textArea.value+' to lover->'+Ti.App.Properties.getString('lover_phone'));						
+			//rowPad.height = 1;
 			add_message(0, textArea.value, post_add_message);						
 		}
 		else
@@ -246,69 +234,94 @@ function add_textarea_and_send_btn()
 	});
 }
 
-function post_add_message()
+function update_timestamp_new_msg(cur_timestamp)
 {
-	latest_msg_view = table_view_rows[table_view_rows.length-1];
-	latest_msg_view.opacity = 1;
+	table_msgs_rows = get_table_msgs_rows();
+	for(x=0;x<table_msgs_rows.length;x++)
+	{
+		if(table_msgs_rows[x]['timestamp'] == '2227778696322')
+		{
+			table_msgs_rows[x]['timestamp'] = cur_timestamp;
+			table_view_rows[x].opacity = 1;			
+		}
+			
+	}
+	Ti.App.table_msgs_rows = table_msgs_rows;
+}
+
+function post_add_message(cur_timestamp)
+{
+	Ti.API.info('XXXXXXXXXXX -> '+cur_timestamp);
+	update_timestamp_new_msg(cur_timestamp);
 }
 
 
 function post_message_send_notification_and_update_views()
-{		
-	textArea.blur();
+{			
+	//textArea.blur();
 	textArea.value ='';	
 }
 //////////////////////////////////////////////////////
-
-function post_fetch_new_msgs()
+function check_and_add_msgs_to_table()
 {
-	var index_to_add;
-	index_to_add = table.data[0].rows.length-2;	
-	show_messages_on_view(index_to_add);
-}
-
-function post_fetch_msgs()
-{
-	var index_to_add;
-	index_to_add = 0;	
-	show_messages_on_view(index_to_add);
-}
-
-function show_messages_on_view(index_to_add)
-{
-	Ti.API.info('coming to show_messages_on_view');
-	global_msgs = get_global_messages();	
-	for(i=global_msgs.length-1;i>=0;i--)
+	this_msgs = get_global_messages();			
+	table_msgs_rows = get_table_msgs_rows();
+	num_rows_in_table = table_msgs_rows.length - 2;
+	num_total_msgs = this_msgs.length;
+	Ti.API.info('Window focus: '+num_rows_in_table+' < '+num_total_msgs);					
+	if(num_rows_in_table < num_total_msgs) // + 2 for for extra dummy rows
 	{
-		put_message_to_view(global_msgs[i], index_to_add);
-		index_to_add = index_to_add + 1;
-	}		
-	Ti.App.num_msgs = global_msgs.length;
+		num_global_msgs = this_msgs.length;				
+		for(var dd=num_rows_in_table;dd<num_total_msgs;dd++) // -2 for for extra dummy rows
+		{
+			Ti.API.info('=========> '+dd+'   '+this_msgs[dd]['txt']);					
+			put_message_to_view(this_msgs[dd]);
+		}
+
+		//num_msgs = this_msgs.length;
+	}
+	table.scrollToIndex(table.data[0].rows.length-1);	
+}
+
+
+function show_messages_on_view()
+{	
+	check_and_add_msgs_to_table();
 	// now set the new_messages switch false
 	Ti.App.Properties.setString('new_messages','0');
 	
 }
 
+function get_index_in_table(message)
+{
+	table_msgs_rows = get_table_msgs_rows();
+	Ti.API.info('coming length->'+table_msgs_rows.length);
+	for(var x=0;x<table_msgs_rows.length-1;x++)
+	{		
+		//Ti.API.info('my X:'+x);
+		Ti.API.info('x:'+x+' '+table_msgs_rows[x]['timestamp']+' < '+message['timestamp']+' < '+table_msgs_rows[x+1]['timestamp']);
+		if(parseFloat(message['timestamp']) > parseFloat(table_msgs_rows[x]['timestamp'])
+			&& parseFloat(message['timestamp']) < parseFloat(table_msgs_rows[x+1]['timestamp']))
+		{			
+			Ti.API.info(' RETURNING IDX x:'+x);
+			return x;
+		}
+	}
+}
 
-function put_message_to_view(message, index_to_add)
+
+function put_message_to_view(message)
 {	
 	var row = Ti.UI.createTableViewRow({
 		className: 'youandirow',
 		selectionStyle: 'none',
-		/*           
-            backgroundGradient : {
-                type          : 'linear',
-                colors        : [ "#fff", '#eeeeed' ],
-                startPoint    : { x : 0, y : 0 },
-                endPoint      : { x : 0, y : 70 },
-                backFillStart : false
-            }
-            */
            width: 'auto',
            height: 'auto',
            backgroundColor:'transparent'
         });     
+    index_to_add = get_index_in_table(message);
     
+    var new_view;
 	if(message['emotion'] == 0)
 	{		
 		var msg_view = Ti.UI.createLabel({
@@ -351,9 +364,8 @@ function put_message_to_view(message, index_to_add)
 		}		
 				
 		msg_view.add(namelbl);
-		row.add(msg_view);
-		table_view_rows.push(msg_view);
-				
+		row.add(msg_view);		
+		new_view = msg_view;					
 	}
 	else
 	{			
@@ -388,10 +400,12 @@ function put_message_to_view(message, index_to_add)
 		else if(message['emotion'] == 4)
 			image1.image='mad.gif';			
 			
-		row.add(image1);	
-		table_view_rows.push(image1);	
-	}	
-	cur_rows = table.data[0].rows.length-2;
+		row.add(image1);			
+		new_view = image1;	
+	}		
+	idx_to_add = index_to_add+1;
+	table_view_rows.insert(idx_to_add, new_view);
+	put_table_msgs_rows(idx_to_add, message);
 	
 	table.insertRowAfter(index_to_add, row);
 	//table.scrollToIndex(table.data[0].rows.length-1);

@@ -1,10 +1,11 @@
 Ti.include('notifications.js');
 fetched_messages = [];
-NUM_RECORDS = 4;
+NUM_RECORDS = 5;
 
 function init_structs()
 {
-	fetched_messages = [];		
+	//Ti.App.global_messages = [];
+	fetched_messages = [];			
 }
 
 function get_last_msg_timestamp(message_list, total_messages)
@@ -65,7 +66,7 @@ function extract_messages_from_response(response)
 			'from_me':from_me,  
 			'unconfirmed_msg': false,
 			'timestamp': parseInt(msg['timestamp']['N'])};
-		Ti.API.info('extracting msg from response -> '+msg_dict['from']+' '+ msg_dict['txt']+' '+msg_dict['from_me']);
+		Ti.API.info('extracting msg from response -> '+msg_dict['from']+' '+ msg_dict['txt']+' '+msg_dict['timestamp']);
 		fetched_messages.push(msg_dict);
 		put_message_in_global(msg_dict);
 	}			
@@ -124,35 +125,32 @@ function fetch_messages(conversation_id, last_timestamp, ui_cb_after_merging_mes
 
 function add_message(emotion_type, msg_text, post_completion_tasks)
 {
+	message_new = {'from': Ti.App.Properties.getString('phone'),
+		'to': Ti.App.Properties.getString('lover_phone'),
+		'emotion': emotion_type,
+		'txt':msg_text,
+		'from_me':true,
+		'timestamp': '2227778696322',// use a big number for timestamp
+		'unconfirmed_msg': true
+	};	
+	put_message_in_global(message_new);							
+	Ti.App.win1.fireEvent('focus');
 	conversation_id = get_conversation_id(Ti.App.Properties.getString('phone'), Ti.App.Properties.getString('lover_phone'));
-	var url = "http://52.0.12.121/cgi-bin/add_message.cgi?&conversation_id="+conversation_id+"&from="+Ti.App.Properties.getString('phone')+"&emotion="+emotion_type+"&message="+msg_text;
-	Ti.API.info('sending notification :'+url);
+	var url = "http://52.0.12.121/cgi-bin/add_message.cgi?&conversation_id="+conversation_id+"&from="+Ti.App.Properties.getString('phone')+"&emotion="+emotion_type+"&message="+msg_text+"&lover_phone="+Ti.App.Properties.getString('lover_phone');
+	Ti.API.info('Request to server:'+url);
 
 	 var client = Ti.Network.createHTTPClient({
 	     // function called when the response data is available
 	     onload : function(e) {	 
 	         Ti.API.info("Received text: " + this.responseText);
 	         cur_timestamp = this.responseText.replace(/^\s+|\s+$/g, '');
-	         /*
-				message_new = {'from': Ti.App.Properties.getString('phone'),
-					'to': Ti.App.Properties.getString('lover_phone'),
-					'emotion': emotion_type.toString(),
-					'txt':msg_text,
-					'from_me':true,
-					'timestamp': cur_timestamp
-				};
-				*/
-				global_msgs = get_global_messages();
-				message_new = global_msgs[global_msgs.length-1];
-				message_new['timestamp'] = cur_timestamp;
-				// this sent message is now the newest message
-				// update user newest timestamp
+			global_msgs = get_global_messages();
+			
+			// just check that your lover didn't send a msg that has a greater timestamp
+			if (parseFloat(Ti.App.Properties.getString('newest_user_msg_timestamp')) < parseFloat(cur_timestamp))
 				Ti.App.Properties.setString('newest_user_msg_timestamp', cur_timestamp);					
-				// Why do we have it here??		
-				send_notification(emotion_type, msg_text);
-				Ti.App.Properties.setString('newest_user_msg_timestamp', message_new['timestamp']);
-				Ti.API.info('Setting newest timestamp ->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));
-				post_completion_tasks();						
+			Ti.API.info('Setting newest timestamp ->'+Ti.App.Properties.getString('newest_user_msg_timestamp'));
+			post_completion_tasks(cur_timestamp);						
 	         
 	     },
 	     // function called when an error occurs, including a timeout
